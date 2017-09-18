@@ -1,0 +1,1061 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>passerbycrk</title>
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="https://passerbycrk.github.io/"/>
+  <updated>2017-07-27T12:56:21.000Z</updated>
+  <id>https://passerbycrk.github.io/</id>
+  
+  <author>
+    <name>passerbycrk</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>mac下配置wine环境</title>
+    <link href="https://passerbycrk.github.io/2017/07/04/install%20wine/"/>
+    <id>https://passerbycrk.github.io/2017/07/04/install wine/</id>
+    <published>2017-07-04T04:00:00.000Z</published>
+    <updated>2017-07-27T12:56:21.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>转自:<a href="https://404forest.com/2015/10/12/%E5%9C%A8mac%E4%B8%8B%E9%85%8D%E7%BD%AEwine%E7%8E%AF%E5%A2%83%E2%80%94%E2%80%94%E8%87%AA%E5%B7%B1wine%E4%B8%80%E4%B8%AA%E5%B0%8F%E6%B8%B8%E6%88%8F/" target="_blank" rel="external">在mac下配置wine环境——自己wine一个小游戏</a></p>
+<hr>
+<p>当我们想要在 mac 上运行 labview 等 windows 下的大型软件时，使用 PD 等虚拟机可以很好的解决需求；然而如果我们只想玩些同人小游戏什么的，再开一个操作系统就觉得有点累赘了，这时我们可以选择wine，更加轻量的执行 windows 应用。</p>
+<a id="more"></a>
+<p>wine 的另一个好处时可以将 windows 应用打包成 APP，这样就可以直接拷贝给别人玩儿了！</p>
+<p>下面是踩过很多坑后总结出来的比较方便的在 mac 上配置 wine 的流程。</p>
+<h4 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h4><p>安装 Xcode</p>
+<p>从 <a href="https://itunes.apple.com/us/app/xcode/id497799835" target="_blank" rel="external">Mac Apple Store</a> 安装</p>
+<p>安装 XQuzrtz</p>
+<p>在<a href="https://www.xquartz.org/" target="_blank" rel="external">这里</a>下载安装。</p>
+<p>安装 homebrew</p>
+<pre><code>$ ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;
+</code></pre><p>温馨提示：homebrew 的源可选择使用清华大学TUNA镜像源提升速度</p>
+<hr>
+<h4 id="安装-wine"><a href="#安装-wine" class="headerlink" title="安装 wine"></a>安装 wine</h4><p>安装 wine</p>
+<pre><code>$ brew install wine
+</code></pre><p>安装 winetricks</p>
+<pre><code>$ brew install winetricks
+</code></pre><hr>
+<h4 id="运行应用程序"><a href="#运行应用程序" class="headerlink" title="运行应用程序"></a>运行应用程序</h4><p>现在我们已经可以执行 windows 应用程序啦。终端下输入</p>
+<pre><code>$ wine setup.exe
+</code></pre><p>就可以执行 setup.exe。</p>
+<p>执行</p>
+<pre><code>$ msiexec /i setup.msi
+</code></pre><p>可以执行msi格式的安装程序。</p>
+<hr>
+<h4 id="安装常用库"><a href="#安装常用库" class="headerlink" title="安装常用库"></a>安装常用库</h4><p>虽然理论上我们已经可以跑 windows 应用程序了，但是游戏还不能玩哦。因为很多依赖都没有安装，比如 .NET Framework，比如 DirectX9，比如 VCRUNTIME 等等。这时候我们需要 winetricks 来帮助我们安装库。</p>
+<pre><code>$ winetricks dotnet35 d3dx9 xna31
+</code></pre><p>已有库的列表可通过 <code>winetricks list</code> 来查询。加参数 <code>-q</code> 可以静默安装。</p>
+<p>不过 winetricks 这东西内置了复杂的 conflict 系统，有冲突时就不给安装。。比如先装完 .net 2.0再装 .net 3.5会报错。只能选择直接装 .net 3.5。</p>
+<p>wine 有一份应用程序的<a href="https://appdb.winehq.org/" target="_blank" rel="external">兼容性文档</a>，在装软件时可以先来查阅一下，会有兼容性评级和一些安装说明，<strong>十分好用！</strong></p>
+<hr>
+<h4 id="打包"><a href="#打包" class="headerlink" title="打包"></a>打包</h4><p>简易的 wineskin 小教程！</p>
+<p><a href="http://wineskin.urgesoftware.com/tiki-index.php?page=Downloads" target="_blank" rel="external">下载 wineskin</a></p>
+<p>安装<code>engine</code>和<code>wrapper</code>。不过 wineskin 自带下载没速度，还是到<a href="https://www.mediafire.com/folder/8p4vcab6414gv/" target="_blank" rel="external">mediafire</a>下载吧。<br>下载时注意版本要和wine对应哦！</p>
+<p>都安装好<code>engine</code>和<code>wrapper</code>后，点击 Create new blank wrapper，输入文件名创建新包，弹出的提示都选 cancel，先不安装。</p>
+<p>在<code>wrapper</code>里，运行 wineskin.app</p>
+<p>选择 Advanced, tool 里有 winetricks 来装常用库，Configuration 中的 Windows EXE 中输入的应用程序路径就是最终打包成品 APP 双击运行的应用。如果有安装程序的话，路径填进去，选择 Test Run 跑一下。最后再把启动 exe 填进去。</p>
+<p>PS. 如果之前在 wine 中装过程序了，直接把<code>~/.wine</code>下的  <code>driver_c</code>文件夹彻底拷贝到<code>wrapper/Content/Resources</code>下，然后指定下 exe 路径就可以直接拿来用。</p>
+<p>wine 坑多坑大，很多程序不能完美运行，报错是免不了的，不要慌，google 多查一查！解决不了的，还是打开 PD 吧。</p>
+<hr>
+<h4 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">运行环境</div><div class="line">macOS Sierra</div><div class="line">10.12.5 (16F73)</div></pre></td></tr></table></figure>
+<p>测试运行IDAPro v6.8绿色版成功</p>
+<p><img src="http://osnpczeks.bkt.clouddn.com/wine_run_ida.png" alt=""></p>
+<p><a href="https://down.52pojie.cn/Tools/Disassemblers/IDA_Pro_v6.8_and_Hex-Rays_Decompiler_%28ARM,x64,x86%29_Green.rar" target="_blank" rel="external">下载windows版IDA</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;转自:&lt;a href=&quot;https://404forest.com/2015/10/12/%E5%9C%A8mac%E4%B8%8B%E9%85%8D%E7%BD%AEwine%E7%8E%AF%E5%A2%83%E2%80%94%E2%80%94%E8%87%AA%E5%B7%B1wine%E4%B8%80%E4%B8%AA%E5%B0%8F%E6%B8%B8%E6%88%8F/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;在mac下配置wine环境——自己wine一个小游戏&lt;/a&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;当我们想要在 mac 上运行 labview 等 windows 下的大型软件时，使用 PD 等虚拟机可以很好的解决需求；然而如果我们只想玩些同人小游戏什么的，再开一个操作系统就觉得有点累赘了，这时我们可以选择wine，更加轻量的执行 windows 应用。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="Mac" scheme="https://passerbycrk.github.io/tags/Mac/"/>
+    
+      <category term="Install" scheme="https://passerbycrk.github.io/tags/Install/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Xcode Framework制作流程详情整理</title>
+    <link href="https://passerbycrk.github.io/2017/06/06/xcode%20build%20framework/"/>
+    <id>https://passerbycrk.github.io/2017/06/06/xcode build framework/</id>
+    <published>2017-06-06T04:00:00.000Z</published>
+    <updated>2017-07-27T12:05:30.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>转自: <a href="https://my.oschina.net/u/2304447/blog/552859" target="_blank" rel="external">Xcode 7 Framework制作流程详情整理</a></p>
+<hr>
+<p>1、新建iOS-&gt;Framework &amp; Library-&gt;Cocoa Touch Framework</p>
+<p>2、选择next进入下一步</p>
+<p>3、在PROJECT-&gt;Deployment Target-&gt;iOS Deployment Target选择你需要支持的最低系统。</p>
+<p>同样的操作在TARGETS中，Deployment Info-&gt;Deployment Target</p>
+<a id="more"></a>
+<p>4、由于我的framework需要支持iOS7，所以在第2、3步中进行了相应的设置。Build时会发现有️ld: warning: embedded dylibs/frameworks only run on iOS 8 or later警告，这是因为工程默认编译设置的是Dynamic Framework。这种编译只有在iOS8以后才能使用。</p>
+<p>5、针对第4步中所出现的问题，根据需求我的工程不需要使用动态framework，以使用其动态更新的功能。动态库可以分开发布，在运行时查找并存入内存，但苹果只允许他自己用，到iOS8以后才开放给开发者。因此，我需要将Dynamic Framework更换为Static Library静态模式。设置路径为Build Settings-&gt;Linking-&gt;Mach-O Type-&gt;Static Library</p>
+<p>6、这里要注意，在编译时，不要将图片文件放在工程里面，否则编译后framework中会出现大量的零散图片文件在里面。这时需要将图片等资源放在.bundle文件中。</p>
+<p>7、这样打包的framework依然有问题，如果你用了Category，别人在用你的framework时会发生崩溃。这时别人在引用时需要在工程中other linker flags中添加-objC如果依然有问题，再添加-all_load。</p>
+<p>8、终于编译成功，但发现很多关于符号表的警告，这时需要将Generate Debug Symbols设置为NO即可关闭符号表警告。</p>
+<p>9、但是我需要支持bitcode，以上设置后并不能使framework支持bitcode,因此还需要进行额外的设置一个命令让其支持bit code。在TAGETS的Build setting中搜索Other C Flags，添加命令“-fembed-bitcode”。同样的设置在PROJECT中。如果不进行以上操作。别人在集成你的framework时可以编译，亦可以真机测试。唯独在打包时会发出警告并打包失败。警告为framework不支持bitcode！</p>
+<p>10、无论SDK还是Framework都需要暴露公共的头文件以供使用者读取和。在TARGETS-&gt;Build Phases-&gt;Headers里面，有三种类别。Public(公共的)，这里存放供其他人查看的header。Private(私有的)这里存放私有的Header，以上两个Headers存放位置都会暴露出来，所有人可以查看。有些Header是不想给别人看到的。这种header放在第三个类Project中。</p>
+<p>11、打包。Edit Scheme-&gt;Build Configuration-&gt;选为Release然后Run.</p>
+<p>直接导出方法：</p>
+<pre><code>1.添加 target --&gt; other --&gt;aggregate
+
+2.在新建的Target里边添加一个脚本:Build Phases --&gt;new Run Script Phase
+
+3.填入下面脚本到 Run Script 
+</code></pre><p><strong>查询framework支持架构：打开终端 lipo -info +路径</strong></p>
+<pre><code># begin =============================================
+
+# Sets the target folders and the final framework product.
+
+# 如果工程名称和Framework的Target名称不一样的话，要自定义FMKNAME
+
+# 例如: FMK_NAME = &quot;MyFramework&quot;
+
+FMK_NAME=${PROJECT_NAME}
+
+
+
+# Install dir will be the final output to the framework.
+
+# The following line create it in the root folder of the current project.
+
+INSTALL_DIR=${SRCROOT}/Products/${FMK_NAME}.framework
+
+
+
+# Working dir will be deleted after the framework creation.
+
+WRK_DIR=build
+
+DEVICE_DIR=${WRK_DIR}/Release-iphoneos/${FMK_NAME}.framework
+
+SIMULATOR_DIR=${WRK_DIR}/Release-iphonesimulator/${FMK_NAME}.framework
+
+
+
+# -configuration ${CONFIGURATION}
+
+# Clean and Building both architectures.
+
+xcodebuild -configuration &quot;Release&quot; -target &quot;${FMK_NAME}&quot; -sdk iphoneos -arch armv7 -arch armv7s -arch arm64 clean build
+
+xcodebuild -configuration &quot;Release&quot; -target &quot;${FMK_NAME}&quot; -sdk iphonesimulator -arch x86_64 clean build
+
+
+
+# Cleaning the oldest.
+
+if [ -d &quot;${INSTALL_DIR}&quot; ]
+
+then
+
+rm -rf &quot;${INSTALL_DIR}&quot;
+
+fi
+
+
+
+mkdir -p &quot;${INSTALL_DIR}&quot;
+
+
+
+cp -R &quot;${DEVICE_DIR}/&quot; &quot;${INSTALL_DIR}/&quot;
+
+
+
+# Uses the Lipo Tool to merge both binary files (i386 + armv6/armv7) into one Universal final product.
+
+lipo -create &quot;${DEVICE_DIR}/${FMK_NAME}&quot; &quot;${SIMULATOR_DIR}/${FMK_NAME}&quot; -output &quot;${INSTALL_DIR}/${FMK_NAME}&quot;
+
+
+
+rm -r &quot;${WRK_DIR}&quot;
+
+
+
+open &quot;${SRCROOT}/Products/&quot;
+
+# end ===============================================
+</code></pre><p>PS:脚本需要跑一遍真机，再跑一遍模拟器才会build success</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;转自: &lt;a href=&quot;https://my.oschina.net/u/2304447/blog/552859&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Xcode 7 Framework制作流程详情整理&lt;/a&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;1、新建iOS-&amp;gt;Framework &amp;amp; Library-&amp;gt;Cocoa Touch Framework&lt;/p&gt;
+&lt;p&gt;2、选择next进入下一步&lt;/p&gt;
+&lt;p&gt;3、在PROJECT-&amp;gt;Deployment Target-&amp;gt;iOS Deployment Target选择你需要支持的最低系统。&lt;/p&gt;
+&lt;p&gt;同样的操作在TARGETS中，Deployment Info-&amp;gt;Deployment Target&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="Tutorial" scheme="https://passerbycrk.github.io/tags/Tutorial/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>多米尼克体系-编码表</title>
+    <link href="https://passerbycrk.github.io/2017/03/29/memory%20encoding/"/>
+    <id>https://passerbycrk.github.io/2017/03/29/memory encoding/</id>
+    <published>2017-03-29T04:00:00.000Z</published>
+    <updated>2017-09-18T09:30:03.000Z</updated>
+    
+    <content type="html"><![CDATA[<h4 id="声母编码"><a href="#声母编码" class="headerlink" title="声母编码"></a>声母编码</h4><p>声母正好20个，可以规划为2x10赋予10个数两组编码<br><br><br>bpmf-dtnl-gkh-jqx-zcsr-yw<br><br><br>特殊：aoe iuv 都当做是0</p>
+<a id="more"></a>
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>d</td>
+<td>y</td>
+<td>z</td>
+<td>m</td>
+<td>s</td>
+<td>w</td>
+<td>l</td>
+<td>q</td>
+<td>b</td>
+<td>j</td>
+</tr>
+<tr>
+<td>c</td>
+<td>t</td>
+<td>r</td>
+<td>k</td>
+<td>p</td>
+<td>h</td>
+<td>n</td>
+<td>f</td>
+<td>x</td>
+<td>g</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="0-9-编码"><a href="#0-9-编码" class="headerlink" title="0~9 编码"></a>0~9 编码</h4><table>
+<thead>
+<tr>
+<th style="text-align:center">数字</th>
+<th style="text-align:center">声母</th>
+<th style="text-align:center">联想</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">0</td>
+<td style="text-align:center">d</td>
+<td style="text-align:center">蛋/洞/鼎/盾</td>
+</tr>
+<tr>
+<td style="text-align:center">1</td>
+<td style="text-align:center">y</td>
+<td style="text-align:center">雁/蚁/鱼/鹰</td>
+</tr>
+<tr>
+<td style="text-align:center">2</td>
+<td style="text-align:center">z</td>
+<td style="text-align:center">嘴/粽/枣/砖</td>
+</tr>
+<tr>
+<td style="text-align:center">3</td>
+<td style="text-align:center">m</td>
+<td style="text-align:center">矛/帽/马/锚</td>
+</tr>
+<tr>
+<td style="text-align:center">4</td>
+<td style="text-align:center">s</td>
+<td style="text-align:center">伞/锁/扇/梳</td>
+</tr>
+<tr>
+<td style="text-align:center">5</td>
+<td style="text-align:center">w</td>
+<td style="text-align:center">碗/蛙/网/瓦</td>
+</tr>
+<tr>
+<td style="text-align:center">6</td>
+<td style="text-align:center">l</td>
+<td style="text-align:center">锣/龙/狼/螺</td>
+</tr>
+<tr>
+<td style="text-align:center">7</td>
+<td style="text-align:center">q</td>
+<td style="text-align:center">球/桥/枪/钳</td>
+</tr>
+<tr>
+<td style="text-align:center">8</td>
+<td style="text-align:center">b</td>
+<td style="text-align:center">豹/靶/蚌/笔</td>
+</tr>
+<tr>
+<td style="text-align:center">9</td>
+<td style="text-align:center">j</td>
+<td style="text-align:center">酒/剑/剪/锯</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="00-99-编码"><a href="#00-99-编码" class="headerlink" title="00~99 编码"></a>00~99 编码</h4><table>
+<thead>
+<tr>
+<th style="text-align:center">数字</th>
+<th style="text-align:left">声母</th>
+<th style="text-align:center">生物</th>
+<th style="text-align:left">行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">00</td>
+<td style="text-align:left">dd-dc-cd-cc</td>
+<td style="text-align:center">大盗</td>
+<td style="text-align:left">蒙面持短刀</td>
+</tr>
+<tr>
+<td style="text-align:center">01</td>
+<td style="text-align:left">dy-dt-cy-ct</td>
+<td style="text-align:center">导游</td>
+<td style="text-align:left">持小喇叭举小旗</td>
+</tr>
+<tr>
+<td style="text-align:center">02</td>
+<td style="text-align:left">dz-dr-cz-cr</td>
+<td style="text-align:center">队长/DZ</td>
+<td style="text-align:left">臂章五道杠</td>
+</tr>
+<tr>
+<td style="text-align:center">03</td>
+<td style="text-align:left">dm-dk-cm-ck</td>
+<td style="text-align:center">达摩</td>
+<td style="text-align:left">头顶有三排戒疤</td>
+</tr>
+<tr>
+<td style="text-align:center">04</td>
+<td style="text-align:left">ds-dp-cs-cp</td>
+<td style="text-align:center">袋鼠</td>
+<td style="text-align:left">肚子上有个口袋</td>
+</tr>
+<tr>
+<td style="text-align:center">05</td>
+<td style="text-align:left">dw-dh-cw-ch</td>
+<td style="text-align:center">典韦</td>
+<td style="text-align:left">持双戟</td>
+</tr>
+<tr>
+<td style="text-align:center">06</td>
+<td style="text-align:left">dl-dn-cl-cn</td>
+<td style="text-align:center">大佬</td>
+<td style="text-align:left">(北野武)戴墨镜+叼雪茄</td>
+</tr>
+<tr>
+<td style="text-align:center">07</td>
+<td style="text-align:left">dq-df-cq-cf</td>
+<td style="text-align:center">大乔</td>
+<td style="text-align:left">持灯笼守望着天空大海和你的回忆</td>
+</tr>
+<tr>
+<td style="text-align:center">08</td>
+<td style="text-align:left">db-dx-cb-cx</td>
+<td style="text-align:center">大白/大饼</td>
+<td style="text-align:left">碳纤维充气白外套/写代码</td>
+</tr>
+<tr>
+<td style="text-align:center">09</td>
+<td style="text-align:left">dj-dg-cj-cg</td>
+<td style="text-align:center">妲己</td>
+<td style="text-align:left">漏出狐狸尾巴</td>
+</tr>
+<tr>
+<td style="text-align:center">10</td>
+<td style="text-align:left">yd-yc-td-tc</td>
+<td style="text-align:center">玉帝</td>
+<td style="text-align:left">头戴皇冠</td>
+</tr>
+<tr>
+<td style="text-align:center">11</td>
+<td style="text-align:left">yy-yt-ty-tt</td>
+<td style="text-align:center">爷爷</td>
+<td style="text-align:left">带着老花镜</td>
+</tr>
+<tr>
+<td style="text-align:center">12</td>
+<td style="text-align:left">yz-yr-tz-tr</td>
+<td style="text-align:center">鸭子</td>
+<td style="text-align:left">扁扁的嘴巴+展开的鸭掌</td>
+</tr>
+<tr>
+<td style="text-align:center">13</td>
+<td style="text-align:left">ym-yk-tm-tk</td>
+<td style="text-align:center">姚明/樱木</td>
+<td style="text-align:left">红色的头发+灌篮</td>
+</tr>
+<tr>
+<td style="text-align:center">14</td>
+<td style="text-align:left">ys-yp-ts-tp</td>
+<td style="text-align:center">耶稣</td>
+<td style="text-align:left">绑在十字架上</td>
+</tr>
+<tr>
+<td style="text-align:center">15</td>
+<td style="text-align:left">yw-yh-tw-th</td>
+<td style="text-align:center">叶问</td>
+<td style="text-align:left">打咏春拳</td>
+</tr>
+<tr>
+<td style="text-align:center">16</td>
+<td style="text-align:left">yl-yn-tl-tn</td>
+<td style="text-align:center">月老</td>
+<td style="text-align:left">牵红线</td>
+</tr>
+<tr>
+<td style="text-align:center">17</td>
+<td style="text-align:left">yq-yf-tq-tf</td>
+<td style="text-align:center">月骑</td>
+<td style="text-align:left">骑黑豹+持月刃</td>
+</tr>
+<tr>
+<td style="text-align:center">18</td>
+<td style="text-align:left">yb-yx-tb-tx</td>
+<td style="text-align:center">伊布</td>
+<td style="text-align:left">从精灵球里出来</td>
+</tr>
+<tr>
+<td style="text-align:center">19</td>
+<td style="text-align:left">yj-yg-tj-tg</td>
+<td style="text-align:center">杨戬</td>
+<td style="text-align:left">持三叉戟+三眼</td>
+</tr>
+<tr>
+<td style="text-align:center">20</td>
+<td style="text-align:left">zd-zc-rd-rc</td>
+<td style="text-align:center">周董</td>
+<td style="text-align:left">“哎呦不错哟”</td>
+</tr>
+<tr>
+<td style="text-align:center">21</td>
+<td style="text-align:left">zy-zt-ry-rt</td>
+<td style="text-align:center">赵云</td>
+<td style="text-align:left">持龙胆枪和青釭剑</td>
+</tr>
+<tr>
+<td style="text-align:center">22</td>
+<td style="text-align:left">zz-zr-rz-rr</td>
+<td style="text-align:center">庄周/蜘蛛</td>
+<td style="text-align:left">骑鲲/吐丝结网</td>
+</tr>
+<tr>
+<td style="text-align:center">23</td>
+<td style="text-align:left">zm-zk-rm-rk</td>
+<td style="text-align:center">掌门</td>
+<td style="text-align:left">《九阴真经》</td>
+</tr>
+<tr>
+<td style="text-align:center">24</td>
+<td style="text-align:left">zs-zp-rs-rp</td>
+<td style="text-align:center">宙斯</td>
+<td style="text-align:left">手持雷霆和宙斯之盾</td>
+</tr>
+<tr>
+<td style="text-align:center">25</td>
+<td style="text-align:left">zw-zh-rw-rh</td>
+<td style="text-align:center">张伟/纣王</td>
+<td style="text-align:left">吃小龙虾过敏/好酒淫乐</td>
+</tr>
+<tr>
+<td style="text-align:center">26</td>
+<td style="text-align:left">zl-zn-rl-rn</td>
+<td style="text-align:center">蟑螂</td>
+<td style="text-align:left">头上有两黑色大触须</td>
+</tr>
+<tr>
+<td style="text-align:center">27</td>
+<td style="text-align:left">zq-zf-rq-rf</td>
+<td style="text-align:center">朱雀</td>
+<td style="text-align:left">全身火焰献祭</td>
+</tr>
+<tr>
+<td style="text-align:center">28</td>
+<td style="text-align:left">zb-zx-rb-rx</td>
+<td style="text-align:center">张苞</td>
+<td style="text-align:left">继承丈八蛇矛</td>
+</tr>
+<tr>
+<td style="text-align:center">29</td>
+<td style="text-align:left">zj-zg-rj-rg</td>
+<td style="text-align:center">张角</td>
+<td style="text-align:left">头戴黄巾可引雷</td>
+</tr>
+<tr>
+<td style="text-align:center">30</td>
+<td style="text-align:left">md-mc-kd-kc</td>
+<td style="text-align:center">马东/麦兜</td>
+<td style="text-align:left">奇葩说议长/猪鼻子端着一碗鱼丸粗面</td>
+</tr>
+<tr>
+<td style="text-align:center">31</td>
+<td style="text-align:left">my-mt-ky-kt</td>
+<td style="text-align:center">马云/蚂蚁</td>
+<td style="text-align:left">淘宝董事长/成群结队搬运糖</td>
+</tr>
+<tr>
+<td style="text-align:center">32</td>
+<td style="text-align:left">mz-mr-kz-kr</td>
+<td style="text-align:center">蚂蚱</td>
+<td style="text-align:left">啃食庄稼</td>
+</tr>
+<tr>
+<td style="text-align:center">33</td>
+<td style="text-align:left">mm-mk-km-kk</td>
+<td style="text-align:center">孟母/妈妈</td>
+<td style="text-align:left">收拾行李准备搬家/围裙+颠勺</td>
+</tr>
+<tr>
+<td style="text-align:center">34</td>
+<td style="text-align:left">ms-mp-ks-kp</td>
+<td style="text-align:center">牧师</td>
+<td style="text-align:left">一身黑袍持法杖施法</td>
+</tr>
+<tr>
+<td style="text-align:center">35</td>
+<td style="text-align:left">mw-mh-kw-kh</td>
+<td style="text-align:center">猫王</td>
+<td style="text-align:left">飞机头</td>
+</tr>
+<tr>
+<td style="text-align:center">36</td>
+<td style="text-align:left">ml-mn-kl-kn</td>
+<td style="text-align:center">马良</td>
+<td style="text-align:left">用神笔画龙点睛</td>
+</tr>
+<tr>
+<td style="text-align:center">37</td>
+<td style="text-align:left">mq-mf-kq-kf</td>
+<td style="text-align:center">米奇</td>
+<td style="text-align:left">拿着彩色气球</td>
+</tr>
+<tr>
+<td style="text-align:center">38</td>
+<td style="text-align:left">mb-mx-kb-kx</td>
+<td style="text-align:center">麦霸</td>
+<td style="text-align:left">在KTV抢麦唱歌</td>
+</tr>
+<tr>
+<td style="text-align:center">39</td>
+<td style="text-align:left">mj-mg-kj-kg</td>
+<td style="text-align:center">母鸡</td>
+<td style="text-align:left">下鸡蛋</td>
+</tr>
+<tr>
+<td style="text-align:center">40</td>
+<td style="text-align:left">sd-sc-pd-pc</td>
+<td style="text-align:center">上帝</td>
+<td style="text-align:left">头带光圈</td>
+</tr>
+<tr>
+<td style="text-align:center">41</td>
+<td style="text-align:left">sy-st-py-pt</td>
+<td style="text-align:center">鲨鱼</td>
+<td style="text-align:left">有垂直的背鳍</td>
+</tr>
+<tr>
+<td style="text-align:center">42</td>
+<td style="text-align:left">sz-sr-pz-pr</td>
+<td style="text-align:center">狮子</td>
+<td style="text-align:left">脸边缘长满鬃毛</td>
+</tr>
+<tr>
+<td style="text-align:center">43</td>
+<td style="text-align:left">sm-sk-pm-pk</td>
+<td style="text-align:center">水母</td>
+<td style="text-align:left">透明发光</td>
+</tr>
+<tr>
+<td style="text-align:center">44</td>
+<td style="text-align:left">ss-sp-ps-pp</td>
+<td style="text-align:center">松鼠</td>
+<td style="text-align:left">吃松子</td>
+</tr>
+<tr>
+<td style="text-align:center">45</td>
+<td style="text-align:left">sw-sh-pw-ph</td>
+<td style="text-align:center">孙武/沙王</td>
+<td style="text-align:left">著《孙子兵法》/摇尾释放地震波</td>
+</tr>
+<tr>
+<td style="text-align:center">46</td>
+<td style="text-align:left">sl-sn-pl-pn</td>
+<td style="text-align:center">神乐</td>
+<td style="text-align:left">拿着雨伞枪，吃着醋昆布</td>
+</tr>
+<tr>
+<td style="text-align:center">47</td>
+<td style="text-align:left">sq-sf-pq-pf</td>
+<td style="text-align:center">圣骑</td>
+<td style="text-align:left">带有圣盾</td>
+</tr>
+<tr>
+<td style="text-align:center">48</td>
+<td style="text-align:left">sb-sx-pb-px</td>
+<td style="text-align:center">孙膑</td>
+<td style="text-align:left">著《孙膑兵法》</td>
+</tr>
+<tr>
+<td style="text-align:center">49</td>
+<td style="text-align:left">sj-sg-pj-pg</td>
+<td style="text-align:center">沙加</td>
+<td style="text-align:left">穿处女座黄金圣衣</td>
+</tr>
+<tr>
+<td style="text-align:center">50</td>
+<td style="text-align:left">wd-wc-hd-hc</td>
+<td style="text-align:center">卧底</td>
+<td style="text-align:left">黑色皮衣+手枪:我想做个好人</td>
+</tr>
+<tr>
+<td style="text-align:center">51</td>
+<td style="text-align:left">wy-wt-hy-ht</td>
+<td style="text-align:center">乌鸦</td>
+<td style="text-align:left">往瓶子里填石子</td>
+</tr>
+<tr>
+<td style="text-align:center">52</td>
+<td style="text-align:left">wz-wr-hz-hr</td>
+<td style="text-align:center">蚊子</td>
+<td style="text-align:left">长长尖尖的嘴能戳破皮肤</td>
+</tr>
+<tr>
+<td style="text-align:center">53</td>
+<td style="text-align:left">wm-wk-hm-hk</td>
+<td style="text-align:center">无名/网民</td>
+<td style="text-align:left">万剑归宗/用键盘输出</td>
+</tr>
+<tr>
+<td style="text-align:center">54</td>
+<td style="text-align:left">ws-wp-hs-hp</td>
+<td style="text-align:center">武松</td>
+<td style="text-align:left">用碗喝酒+打虎</td>
+</tr>
+<tr>
+<td style="text-align:center">55</td>
+<td style="text-align:left">ww-wh-hw-hh</td>
+<td style="text-align:center">王维</td>
+<td style="text-align:left">画中有诗</td>
+</tr>
+<tr>
+<td style="text-align:center">56</td>
+<td style="text-align:left">wl-wn-hl-hn</td>
+<td style="text-align:center">卧龙</td>
+<td style="text-align:left">羽扇纶巾</td>
+</tr>
+<tr>
+<td style="text-align:center">57</td>
+<td style="text-align:left">wq-wf-hq-hf</td>
+<td style="text-align:center">雾切</td>
+<td style="text-align:left">猎鹿帽+披风=超高级侦探</td>
+</tr>
+<tr>
+<td style="text-align:center">58</td>
+<td style="text-align:left">wb-wx-hb-hx</td>
+<td style="text-align:center">王八</td>
+<td style="text-align:left">藏在龟壳里</td>
+</tr>
+<tr>
+<td style="text-align:center">59</td>
+<td style="text-align:left">wj-wg-hj-hg</td>
+<td style="text-align:center">武警/吴京</td>
+<td style="text-align:left">防弹衣+防弹头盔+步枪</td>
+</tr>
+<tr>
+<td style="text-align:center">60</td>
+<td style="text-align:left">ld-lc-nd-nc</td>
+<td style="text-align:center">林丹</td>
+<td style="text-align:left">持羽毛球拍</td>
+</tr>
+<tr>
+<td style="text-align:center">61</td>
+<td style="text-align:left">ly-lt-ny-nt</td>
+<td style="text-align:center">柳岩/老鹰</td>
+<td style="text-align:left">S曲线身材/大翅膀盘旋在天空</td>
+</tr>
+<tr>
+<td style="text-align:center">62</td>
+<td style="text-align:left">lz-lr-nz-nr</td>
+<td style="text-align:center">老子/驴子</td>
+<td style="text-align:left">著《道德经》/拉磨</td>
+</tr>
+<tr>
+<td style="text-align:center">63</td>
+<td style="text-align:left">lm-lk-nm-nk</td>
+<td style="text-align:center">狸猫</td>
+<td style="text-align:left">翻找垃圾桶</td>
+</tr>
+<tr>
+<td style="text-align:center">64</td>
+<td style="text-align:left">ls-lp-ns-np</td>
+<td style="text-align:center">老师/老鼠</td>
+<td style="text-align:left">在讲台用教鞭敲黑板/偷吃老鼠夹上的奶酪</td>
+</tr>
+<tr>
+<td style="text-align:center">65</td>
+<td style="text-align:left">lw-lh-nw-nh</td>
+<td style="text-align:center">鹿丸</td>
+<td style="text-align:left">使用影子模仿术</td>
+</tr>
+<tr>
+<td style="text-align:center">66</td>
+<td style="text-align:left">ll-ln-nl-nn</td>
+<td style="text-align:center">李雷/萝莉</td>
+<td style="text-align:left">how r u / 穿萝莉装</td>
+</tr>
+<tr>
+<td style="text-align:center">67</td>
+<td style="text-align:left">lq-lf-nq-nf</td>
+<td style="text-align:center">刘谦</td>
+<td style="text-align:left">白手套+魔术:见证奇迹</td>
+</tr>
+<tr>
+<td style="text-align:center">68</td>
+<td style="text-align:left">lb-lx-nb-nx</td>
+<td style="text-align:center">刘备</td>
+<td style="text-align:left">持雌雄双股剑</td>
+</tr>
+<tr>
+<td style="text-align:center">69</td>
+<td style="text-align:left">lj-lg-nj-ng</td>
+<td style="text-align:center">李靖</td>
+<td style="text-align:left">手里托塔</td>
+</tr>
+<tr>
+<td style="text-align:center">70</td>
+<td style="text-align:left">qd-qc-fd-fc</td>
+<td style="text-align:center">乔丹</td>
+<td style="text-align:left">代言篮球鞋</td>
+</tr>
+<tr>
+<td style="text-align:center">71</td>
+<td style="text-align:left">qy-qt-fy-ft</td>
+<td style="text-align:center">屈原/琼瑶/蚯蚓</td>
+<td style="text-align:left">吃粽子/钻地松土</td>
+</tr>
+<tr>
+<td style="text-align:center">72</td>
+<td style="text-align:left">qz-qr-fz-fr</td>
+<td style="text-align:center">酋长</td>
+<td style="text-align:left">黝黑的皮肤脸上涂着迷彩，举行篝火晚会</td>
+</tr>
+<tr>
+<td style="text-align:center">73</td>
+<td style="text-align:left">qm-qk-fm-fk</td>
+<td style="text-align:center">球迷</td>
+<td style="text-align:left">脸上印着国旗并大声呐喊</td>
+</tr>
+<tr>
+<td style="text-align:center">74</td>
+<td style="text-align:left">qs-qp-fs-fp</td>
+<td style="text-align:center">琴师</td>
+<td style="text-align:left">弹奏古琴</td>
+</tr>
+<tr>
+<td style="text-align:center">75</td>
+<td style="text-align:left">qw-qh-fw-fh</td>
+<td style="text-align:center">青蛙</td>
+<td style="text-align:left">坐在荷花上吐舌头吃蚊子</td>
+</tr>
+<tr>
+<td style="text-align:center">76</td>
+<td style="text-align:left">ql-qn-fl-fn</td>
+<td style="text-align:center">麒麟</td>
+<td style="text-align:left">送子</td>
+</tr>
+<tr>
+<td style="text-align:center">77</td>
+<td style="text-align:left">qq-qf-fq-ff</td>
+<td style="text-align:center">QQ</td>
+<td style="text-align:left">红色大围脖</td>
+</tr>
+<tr>
+<td style="text-align:center">78</td>
+<td style="text-align:left">qb-qx-fb-fx</td>
+<td style="text-align:center">乔巴/丘比</td>
+<td style="text-align:left">鹿角上带着红色帽子/签订契约</td>
+</tr>
+<tr>
+<td style="text-align:center">79</td>
+<td style="text-align:left">qj-qg-fj-fg</td>
+<td style="text-align:center">巧匠?</td>
+<td style="text-align:left">(鲁班)手持锯子和小锤捣鼓木材</td>
+</tr>
+<tr>
+<td style="text-align:center">80</td>
+<td style="text-align:left">bd-bc-xd-xc</td>
+<td style="text-align:center">笨蛋</td>
+<td style="text-align:left">试卷:0分+药不能停</td>
+</tr>
+<tr>
+<td style="text-align:center">81</td>
+<td style="text-align:left">by-bt-xy-xt</td>
+<td style="text-align:center">贝爷</td>
+<td style="text-align:left">吃虫子,嘎嘣脆</td>
+</tr>
+<tr>
+<td style="text-align:center">82</td>
+<td style="text-align:left">bz-br-xz-xr</td>
+<td style="text-align:center">包拯</td>
+<td style="text-align:left">脸黑+月亮印</td>
+</tr>
+<tr>
+<td style="text-align:center">83</td>
+<td style="text-align:left">bm-bk-xm-xk</td>
+<td style="text-align:center">斑马</td>
+<td style="text-align:left">黑白条纹皮肤</td>
+</tr>
+<tr>
+<td style="text-align:center">84</td>
+<td style="text-align:left">bs-bp-xs-xp</td>
+<td style="text-align:center">博士/白叟</td>
+<td style="text-align:left">带着护目镜做试验/头发斑白+独钓于江边</td>
+</tr>
+<tr>
+<td style="text-align:center">85</td>
+<td style="text-align:left">bw-bh-xw-xh</td>
+<td style="text-align:center">霸王?</td>
+<td style="text-align:left">力拔山,气盖世</td>
+</tr>
+<tr>
+<td style="text-align:center">86</td>
+<td style="text-align:left">bl-bn-xl-xn</td>
+<td style="text-align:center">伯乐/冰龙</td>
+<td style="text-align:left">识好马/巨大寒冰双翼+喷吐寒气</td>
+</tr>
+<tr>
+<td style="text-align:center">87</td>
+<td style="text-align:left">bq-bf-xq-xf</td>
+<td style="text-align:center">扁鹊</td>
+<td style="text-align:left">切脉诊病</td>
+</tr>
+<tr>
+<td style="text-align:center">88</td>
+<td style="text-align:left">bb-bx-xb-xx</td>
+<td style="text-align:center">宝宝</td>
+<td style="text-align:left">叼着奶嘴</td>
+</tr>
+<tr>
+<td style="text-align:center">89</td>
+<td style="text-align:left">bj-bg-xj-xg</td>
+<td style="text-align:center">八戒</td>
+<td style="text-align:left">拿着钉耙挥舞</td>
+</tr>
+<tr>
+<td style="text-align:center">90</td>
+<td style="text-align:left">jd-jc-gd-gc</td>
+<td style="text-align:center">角都/间谍</td>
+<td style="text-align:left">有多个心脏/窃取文件机密</td>
+</tr>
+<tr>
+<td style="text-align:center">91</td>
+<td style="text-align:left">jy-jt-gy-gt</td>
+<td style="text-align:center">鲸鱼</td>
+<td style="text-align:left">头顶喷水柱</td>
+</tr>
+<tr>
+<td style="text-align:center">92</td>
+<td style="text-align:left">jz-jr-gz-gr</td>
+<td style="text-align:center">精子/军长</td>
+<td style="text-align:left">数量繁多+白色小尾巴/衣带肩章</td>
+</tr>
+<tr>
+<td style="text-align:center">93</td>
+<td style="text-align:left">jm-jk-gm-gk</td>
+<td style="text-align:center">巨魔</td>
+<td style="text-align:left">投射火焰长矛</td>
+</tr>
+<tr>
+<td style="text-align:center">94</td>
+<td style="text-align:left">js-jp-gs-gp</td>
+<td style="text-align:center">剑圣</td>
+<td style="text-align:left">持剑使出剑刃风暴</td>
+</tr>
+<tr>
+<td style="text-align:center">95</td>
+<td style="text-align:left">jw-jh-gw-gh</td>
+<td style="text-align:center">九尾</td>
+<td style="text-align:left">有九条尾巴</td>
+</tr>
+<tr>
+<td style="text-align:center">96</td>
+<td style="text-align:left">jl-jn-gl-gn</td>
+<td style="text-align:center">蛟龙/精灵</td>
+<td style="text-align:left">腾云驾雾</td>
+</tr>
+<tr>
+<td style="text-align:center">97</td>
+<td style="text-align:left">jq-jf-gq-gf</td>
+<td style="text-align:center">警犬</td>
+<td style="text-align:left">安检闻行李</td>
+</tr>
+<tr>
+<td style="text-align:center">98</td>
+<td style="text-align:left">jb-jx-gb-gx</td>
+<td style="text-align:center">街霸/嘉宾</td>
+<td style="text-align:left">释放冲击波</td>
+</tr>
+<tr>
+<td style="text-align:center">99</td>
+<td style="text-align:left">jj-jg-gj-gg</td>
+<td style="text-align:center">交警</td>
+<td style="text-align:left">在交警亭里指挥交通+开罚单</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p>PS:可以根据自己熟悉的事物来编码，以上只是为自己整理的编码表。</p>
+<hr>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><ul>
+<li><a href="http://blog.sina.com.cn/s/blog_61736b5d01011ibb.html" target="_blank" rel="external">多米尼克体系-中文记忆法</a></li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h4 id=&quot;声母编码&quot;&gt;&lt;a href=&quot;#声母编码&quot; class=&quot;headerlink&quot; title=&quot;声母编码&quot;&gt;&lt;/a&gt;声母编码&lt;/h4&gt;&lt;p&gt;声母正好20个，可以规划为2x10赋予10个数两组编码&lt;br&gt;&lt;br&gt;&lt;br&gt;bpmf-dtnl-gkh-jqx-zcsr-yw&lt;br&gt;&lt;br&gt;&lt;br&gt;特殊：aoe iuv 都当做是0&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="Memory" scheme="https://passerbycrk.github.io/tags/Memory/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>使用github+jekyll搭建博客</title>
+    <link href="https://passerbycrk.github.io/2016/09/23/setup%20blog/"/>
+    <id>https://passerbycrk.github.io/2016/09/23/setup blog/</id>
+    <published>2016-09-23T04:00:00.000Z</published>
+    <updated>2017-07-27T12:05:30.000Z</updated>
+    
+    <content type="html"><![CDATA[<h4 id="2017-07-06-更新"><a href="#2017-07-06-更新" class="headerlink" title="2017-07-06 更新"></a>2017-07-06 更新</h4><p>改用Hexo建站</p>
+<p>参考：</p>
+<p><a href="http://ibruce.info/2013/11/22/hexo-your-blog/" target="_blank" rel="external">hexo你的博客</a></p>
+<p><a href="https://linghucong.js.org/2016/04/15/2016-04-15-hexo-github-pages-blog/" target="_blank" rel="external">手把手教你使用Hexo + Github Pages搭建个人独立博客</a></p>
+<a id="more"></a>
+<hr>
+<h4 id="在GitHub上创建repository"><a href="#在GitHub上创建repository" class="headerlink" title="在GitHub上创建repository"></a>在GitHub上创建repository</h4><p>搭建要用github pages，首先要在github中建立一个基于你的用户名的repository: 比如说我，就要建立名为<a href="https://github.com/passerbycrk/passerbycrk.github.io" target="_blank" rel="external">passerbycrk.github.io</a>的repo。在以前的github版本中还需要在后台开启pages的功能，现在系统检测到这样的repo名称之后，会在setting中自动开启GitHub Pages的功能，如下图：<br><img src="http://osnpczeks.bkt.clouddn.com/github_blog.png" alt=""><br>这样之后你就可以把这个repo克隆到本地随意进行修改了，在这个里面上传的网页就是你的网站的内容了，可以上传一个index.html试一试，这就是你的网站主页了。<br>关于GiuHub的使用，可以看几个比较好的入门教程：<a href="http://www.zhihu.com/question/20070065" target="_blank" rel="external">GiuHub使用教程传送门</a></p>
+<h4 id="集成本地部署环境"><a href="#集成本地部署环境" class="headerlink" title="集成本地部署环境"></a>集成本地部署环境</h4><p>之后我们就要在本地部署jekyll，jekyll的原理很简单。这是一个已经合成好的静态html网站结构，你用这个结构在username,github.io文件夹里面粘帖好所有文件。再把更新完的本地repo推送到GitHub的master branch里面，你的网站就更新建设完毕了。<br>首先你需要<a href="https://www.ruby-lang.org/en/" target="_blank" rel="external">ruby</a>来使用本地jekyll。Mac和Linux可以用Terminal配合<a href="http://yum.baseurl.org/" target="_blank" rel="external">yum</a>或者<a href="http://brew.sh/" target="_blank" rel="external">brew</a>这样的包管理器很方便的安装ruby。Windows下更是方便，可以直接中集成好的<a href="http://rubyinstaller.org/" target="_blank" rel="external">Ruby installer</a>来进行安装，文章里的就是传送门。<br>安装完ruby，之后就是要安装<a href="https://rubygems.org/pages/download" target="_blank" rel="external">RubyGems</a>，gem是一个ruby的包管理系统，可以用gem很方便的在本地安装ruby应用。<br>安装方法如下:</p>
+<ul>
+<li>在RubyGems官网上下载压缩包，解压到你的本地。</li>
+<li>在Terminal中输入以下代码:</li>
+<li><pre><code>
+$ cd your path to RubyGems // RubyGems解压的位置
+$ ruby setup.rb
+</code></pre>
+
+</li>
+</ul>
+<h4 id="安装jekyll"><a href="#安装jekyll" class="headerlink" title="安装jekyll"></a>安装jekyll</h4><p>有了gem之后安装jekyll就很容易了，其实用过nodejs和npm的同学应该很熟悉这样的包安装，真是这个世界手残脑残们的救星。。。。。（楼主不自觉的摸了摸自己快残了的手）</p>
+<ul>
+<li>接下来在Terminal中输入安装jekyll代码：</li>
+<li><pre><code>
+$ gem install jekyll 
+</code></pre>
+
+</li>
+</ul>
+<p>等待安装完成。</p>
+<h4 id="文件目录结构"><a href="#文件目录结构" class="headerlink" title="文件目录结构"></a>文件目录结构</h4><p>好了，现在你的电脑已经准备完毕了。如果你是想自己捣鼓，可以根据这样的目录结构在你的{username}.github.io文件夹下建立以下目录结构：</p>
+<ul>
+<li><pre><code>
+  ├── _config.yml
+  ├── _drafts
+  |   ├── begin-with-the-crazy-ideas.textile
+  |   └── on-simplicity-in-technology.markdown
+  ├── _includes
+  |   ├── footer.html
+  |   └── header.html
+  ├── _layouts
+  |   ├── default.html
+  |   └── post.html
+  ├── _posts
+  |   ├── 2007-10-29-why-every-programmer-should-play-nethack.textile
+  |   └── 2009-04-26-barcamp-boston-4-roundup.textile
+  ├── _site
+  └── index.html
+</code></pre>    
+
+</li>
+</ul>
+<h4 id="选择模板"><a href="#选择模板" class="headerlink" title="选择模板"></a>选择模板</h4><p>如果你只是个普通用户，只是想要一个模板然后开始写自己的博客。那就很容易了，有几个可以简单开始的模板。</p>
+<ul>
+<li>极简风格的模板:<a href="https://github.com/poole/poole" target="_blank" rel="external">https://github.com/poole/poole</a> </li>
+<li>jekyll的模板网站:<a href="http://jekyllthemes.org/" target="_blank" rel="external">http://jekyllthemes.org/</a></li>
+</ul>
+<h4 id="本地部署发布"><a href="#本地部署发布" class="headerlink" title="本地部署发布"></a>本地部署发布</h4><p>下载完了模板，可以吧里面的内容解压到你自己的网站目录底下。这时候你可以测试一下：</p>
+<ul>
+<li><pre><code>
+$ cd your website path // cd到你的网站目录下
+$ jekyll serve
+</code></pre>
+</li>
+<li><p>接下来部署的博客会运行在 <a href="http://localhost:4000/" target="_blank" rel="external">http://localhost:4000/</a></p>
+</li>
+<li>在浏览器中输入以上地址回车后就可以看到你用模板搭建的网站了。</li>
+</ul>
+<h4 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h4><p>这时候可以看一下jekyll的设置，让你把模板变成你自己个性化的内容。在网站根目录下面找到    <strong>_config.yml</strong>,这里会有几个比较关键的设置：<br>里面的permalink 就是你博客文章的目录结构，可以用pretty来简单的设置成日期+文章标题.html，也可以用自己喜欢的结构来设置。<br>记得把encoding 设置成utf-8，这样有利于中英文双语的写作和阅读。</p>
+<h4 id="发布内容"><a href="#发布内容" class="headerlink" title="发布内容"></a>发布内容</h4><p>到这里你就可以开始写博客了，所有的文章直接放在<strong>_posts</strong>文件夹下面，格式就是我们之前提到的markdown文件，默认的格式是.md和.markdown文件。每篇文章的开始处需要使用yml格式来写明这篇文章的简单介绍，格式如下：</p>
+<pre><code>---
+layout:     post
+title:      &quot;文章标题&quot;
+subtitle:   &quot;文章副标题&quot;
+date:       2016-09-23 12:00:00+00:00
+author:     &quot;作者昵称&quot;
+---
+</code></pre><p>layout就是post，让jekyll知道你这是一篇post，很直观。需要注意的是里面的<strong>date</strong>，必须按照yml的语法来写，否则就会出现编译错误。可以只用<strong>YYYY-MM-DD</strong>来显示日期，也可以像我一样在后面加上 <strong>HH:MM:SS+00:00</strong> 来表示更具体的时间。</p>
+<h4 id="结束"><a href="#结束" class="headerlink" title="结束"></a>结束</h4><p>到此为止可以开始尽情的写博客了，用GitHub软件同步到你的repository里面，网站上面就可以进行正常的显示了。</p>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><ul>
+<li><p><a href="http://kresnik.wang/works/tech/2015/06/07/%E5%9C%A8github-pages%E7%BD%91%E7%AB%99%E4%B8%8B%E7%94%A8jekyll%E5%88%B6%E4%BD%9C%E5%8D%9A%E5%AE%A2%E6%95%99%E7%A8%8B.html" target="_blank" rel="external">在github pages网站下用jekyll制作博客教程</a></p>
+</li>
+<li><p><a href="https://github.com/Huxpro/huxpro.github.io/blob/master/README.zh.md" target="_blank" rel="external">Hux blog 模板</a></p>
+</li>
+<li><p><a href="https://github.com/renyuanz/leonids" target="_blank" rel="external">leonids 模板</a></p>
+</li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h4 id=&quot;2017-07-06-更新&quot;&gt;&lt;a href=&quot;#2017-07-06-更新&quot; class=&quot;headerlink&quot; title=&quot;2017-07-06 更新&quot;&gt;&lt;/a&gt;2017-07-06 更新&lt;/h4&gt;&lt;p&gt;改用Hexo建站&lt;/p&gt;
+&lt;p&gt;参考：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://ibruce.info/2013/11/22/hexo-your-blog/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;hexo你的博客&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://linghucong.js.org/2016/04/15/2016-04-15-hexo-github-pages-blog/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;手把手教你使用Hexo + Github Pages搭建个人独立博客&lt;/a&gt;&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="Tutorial" scheme="https://passerbycrk.github.io/tags/Tutorial/"/>
+    
+  </entry>
+  
+</feed>
