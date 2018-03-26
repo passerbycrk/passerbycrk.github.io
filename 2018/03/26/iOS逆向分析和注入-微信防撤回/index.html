@@ -98,7 +98,7 @@
 <meta property="og:image" content="https://i.loli.net/2018/03/26/5ab8ffa58c601.png">
 <meta property="og:image" content="https://i.loli.net/2018/03/26/5ab8ffdbe43a2.png">
 <meta property="og:image" content="https://i.loli.net/2018/03/26/5ab8ffc14995d.png">
-<meta property="og:updated_time" content="2018-03-26T14:33:16.710Z">
+<meta property="og:updated_time" content="2018-03-26T14:42:37.274Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="iOS逆向分析和注入-微信防撤回">
 <meta name="twitter:description" content="复习iOS逆向知识，以微信消息防撤回为例，一步一步分析调试，到完成插件注入。">
@@ -339,11 +339,11 @@
 <a id="more"></a>
 <h3 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h3><p><code>越狱iPhone 5s (iOS 10.1.1)</code> 并安装了以下软件:</p>
 <blockquote>
-<p><code>OpenSSH</code>: 实现在越狱手机上远程进行 ssh 服务，通过 ssh，即可以通过终端连接 iPhone 进行控制。<br><code>dumpdecrypted</code>: 砸壳工具<br><code>Cycript</code>: 脚本语言工具，用于 hook 正在运行的进程，并实时注入代码。<br><code>debugserver</code>: 用于连接手机进行 lldb 调试的工具。用 Xcode 在手机上进行 app 调试即可在iPhone目录的 /Developer/usr/bin/ 中生成。</p>
+<p><code>OpenSSH</code>: 实现在越狱手机上远程进行 ssh 服务，通过 ssh，即可以通过终端连接 iPhone 进行控制。<br><code>dumpdecrypted</code>: 砸壳工具。<br><code>Cycript</code>: 脚本语言工具，用于 hook 正在运行的进程，并实时注入代码。<br><code>debugserver</code>: 用于连接手机进行 lldb 调试的工具。用 Xcode 在手机上进行 app 调试即可在iPhone目录的 /Developer/usr/bin/ 中生成。</p>
 </blockquote>
 <p><code>苹果电脑 (macOS High Sierra 10.13.3)</code> 并安装了以下软件:</p>
 <blockquote>
-<p><code>class_dump</code>: dump 目标对象的 class 信息的工具。<br><code>Hopper Disassembler</code>: 静态分析工具。<br><code>usbmuxd</code>: 端口转发，可以让我们通过 usb 连接手机进行 ssh、lldb 调试等。<br><code>lldb</code>: 调试神器，用过的都说好 (/Applications/Xcode.app/Contents/Developer/usr/bin/lldb)。<br><code>theos</code>: 插件编写IDE。</p>
+<p><code>frida-ios-dump</code>: 砸壳利器。<br><code>class_dump</code>: dump 目标对象的 class 信息的工具。<br><code>Hopper_Disassembler</code>: 静态分析工具。<br><code>usbmuxd</code>: 端口转发，可以让我们通过 usb 连接手机进行 ssh、lldb 调试等。<br><code>lldb</code>: 调试神器，用过的都说好 (/Applications/Xcode.app/Contents/Developer/usr/bin/lldb)。<br><code>theos</code>: 插件编写IDE。</p>
 </blockquote>
 <hr>
 <h3 id="流程概述"><a href="#流程概述" class="headerlink" title="流程概述"></a>流程概述</h3><ul>
