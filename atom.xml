@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://passerbycrk.github.io/"/>
-  <updated>2018-03-26T14:42:37.274Z</updated>
+  <updated>2018-03-27T00:34:07.405Z</updated>
   <id>https://passerbycrk.github.io/</id>
   
   <author>
@@ -20,10 +20,11 @@
     <link href="https://passerbycrk.github.io/2018/03/26/iOS%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%92%8C%E6%B3%A8%E5%85%A5-%E5%BE%AE%E4%BF%A1%E9%98%B2%E6%92%A4%E5%9B%9E/"/>
     <id>https://passerbycrk.github.io/2018/03/26/iOS逆向分析和注入-微信防撤回/</id>
     <published>2018-03-26T04:00:00.000Z</published>
-    <updated>2018-03-26T14:42:37.274Z</updated>
+    <updated>2018-03-27T00:34:07.405Z</updated>
     
     <content type="html"><![CDATA[<p>复习iOS逆向知识，以微信消息防撤回为例，一步一步分析调试，到完成插件注入。</p>
 <a id="more"></a>
+<hr>
 <h3 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h3><p><code>越狱iPhone 5s (iOS 10.1.1)</code> 并安装了以下软件:</p>
 <blockquote>
 <p><code>OpenSSH</code>: 实现在越狱手机上远程进行 ssh 服务，通过 ssh，即可以通过终端连接 iPhone 进行控制。<br><code>dumpdecrypted</code>: 砸壳工具。<br><code>Cycript</code>: 脚本语言工具，用于 hook 正在运行的进程，并实时注入代码。<br><code>debugserver</code>: 用于连接手机进行 lldb 调试的工具。用 Xcode 在手机上进行 app 调试即可在iPhone目录的 /Developer/usr/bin/ 中生成。</p>
@@ -209,10 +210,10 @@ install.exec &quot;killall -9 SpringBoard&quot;
 </code></pre><p>打开<code>Cydia-已安装</code>可以看到插件已经安装成功:<br><!-- ![](cydia_tweak_logify.png) --><br><img src="https://i.loli.net/2018/03/26/5ab8ff5fb7680.png" alt=""></p>
 <h4 id="idevicesyslog-iOS日志查看工具"><a href="#idevicesyslog-iOS日志查看工具" class="headerlink" title="idevicesyslog (iOS日志查看工具)"></a>idevicesyslog (iOS日志查看工具)</h4><p>介绍: <a href="https://github.com/libimobiledevice/libimobiledevice" target="_blank" rel="external">https://github.com/libimobiledevice/libimobiledevice</a></p>
 <blockquote>
-<p>是<code>libimobiledevice</code>下的一个子工具</p>
+<p>是<code>libimobiledevice</code>下的一个子工具，可以实时追踪iOS设备日志。</p>
 </blockquote>
 <pre><code># idevicesyslog | grep &quot;BaseMsgContentViewController&quot;
-</code></pre><p>整理后log对比可以发现可疑方法调用<br><code>-[BaseMsgContentViewController OnMsgRevoked:n64MsgId:]</code></p>
+</code></pre><p>重新运行app，执行收到消息和撤回消息的case，可以分别获取两份log:</p>
 <table>
 <thead>
 <tr>
@@ -222,17 +223,24 @@ install.exec &quot;killall -9 SpringBoard&quot;
 </thead>
 <tbody>
 <tr>
-<td><!--![](tweak-logify-receive.png)--><img src="https://i.loli.net/2018/03/26/5ab8ff8fec23e.png" alt=""></td>
-<td><!--![](tweak-logify-revoke.png)--><img src="https://i.loli.net/2018/03/26/5ab8ffa58c601.png" alt=""></td>
+<td><!--![](tweak_logify_receive.png)--><img src="https://i.loli.net/2018/03/26/5ab8ff8fec23e.png" alt=""></td>
+<td><!--![](tweak_logify_revoke.png)--><img src="https://i.loli.net/2018/03/26/5ab8ffa58c601.png" alt=""></td>
 </tr>
 </tbody>
 </table>
+<p>整理后log对比可以发现可疑方法调用<br><code>-[BaseMsgContentViewController OnMsgRevoked:n64MsgId:]</code></p>
 <h4 id="class-dump-静态分析工具"><a href="#class-dump-静态分析工具" class="headerlink" title="class-dump (静态分析工具)"></a>class-dump (静态分析工具)</h4><p>介绍: <a href="http://stevenygard.com/projects/class-dump/" target="_blank" rel="external">http://stevenygard.com/projects/class-dump/</a></p>
 <blockquote>
 <p>这是一个检查存储在Mach-O文件Objective-C运行时信息的命令行实用工具。<br>能生成classes、categories、protocols定义的头文件(.h文件)。(与<code>otool -ov</code>命令获取的信息类似，但可读性更高)</p>
 </blockquote>
 <pre><code># class-dump -HA WeChat -o ./Headers
 </code></pre><p>获得头文件以及方法的<code>IMP address</code></p>
+<p>例如：<code>-[BaseMsgContentViewController OnMsgRevoked:n64MsgId:] // IMP=0x0000000102129454</code></p>
+<h4 id="Hopper-Disassembler-分析工具"><a href="#Hopper-Disassembler-分析工具" class="headerlink" title="Hopper Disassembler (分析工具)"></a>Hopper Disassembler (分析工具)</h4><p>介绍: <a href="https://www.hopperapp.com" target="_blank" rel="external">https://www.hopperapp.com</a></p>
+<blockquote>
+<p>是一款32位和64位的二进制反汇编器，反编译和调试。可以使用此工具拆开你想要的任何二进制。</p>
+</blockquote>
+<p>使用方法很简单：将二进制文件拖入软件中，等待处理完成即可。<br>(完整解析微信app需要很长一段时间，可以前置该流程进行解析处理)</p>
 <h4 id="lldb-debugserver-动态分析"><a href="#lldb-debugserver-动态分析" class="headerlink" title="lldb+debugserver (动态分析)　"></a>lldb+debugserver (动态分析)　</h4><p>1.打开微信后，在连接至设备的控制台中键入<code>debugserver *:1234 -a &quot;WeChat&quot;</code>启动debugserver。<br>2.从控制台打开新窗口，键入<code>lldb</code>进入调试，再键入<code>debugserver *:1234 -a &quot;WeChat&quot;</code>连接1234端口。<br><!--![](lldb+debugserver.png)--><br><img src="https://i.loli.net/2018/03/26/5ab8ffdbe43a2.png" alt=""></p>
 <p>(此处连接上需要一点时间，可以上个厕所，连接上后键入<code>c</code>(continue)后app就可以正常运行了)<br>连接成功后<code>lldb</code>窗口会出现以下内容:</p>
 <pre><code>(lldb) process connect connect://192.168.1.19:1234
@@ -282,12 +290,13 @@ Target 0: (WeChat) stopped.
     frame #5: 0x0000000104d5b980 MMCommon`_callExtension + 480
     frame #6: 0x0000000102f89414 WeChat`ClearSessionItem::compareVideo(std::__1::shared_ptr&lt;ClearSessionItem&gt; const&amp;, std::__1::shared_ptr&lt;ClearSessionItem&gt; const&amp;) + 1516048
     ...
-</code></pre><p>python+Hopper Disassembler 定位函数</p>
+</code></pre><p>python+Hopper Disassembler 获取调用栈</p>
 <pre><code>&gt;&gt;&gt; hex(0x0000000102171454-0x0000000000048000)
 &apos;0x102129454&apos; // -[BaseMsgContentViewController OnMsgRevoked:n64MsgId:]
 &gt;&gt;&gt; hex(0x0000000102ccfaac-0x0000000000048000)
 &apos;0x102c87aac&apos; // -[CMessageMgr onRevokeMsg:]    
-</code></pre><hr>
+</code></pre><p>使用Hopper Disassembler可以定位调用方法名，此处我们发现可疑函数调用<code>-[CMessageMgr onRevokeMsg:]</code></p>
+<hr>
 <h3 id="编写插件并注入"><a href="#编写插件并注入" class="headerlink" title="编写插件并注入"></a>编写插件并注入</h3><p>创建插件工程</p>
 <pre><code># nic.pl
 NIC 2.0 - New Instance Creator
@@ -336,7 +345,7 @@ install.exec &quot;killall -9 SpringBoard&quot;
 </code></pre><p>打开<code>Cydia-已安装</code>可以看到插件已经安装成功:</p>
 <!-- ![](cydia_tweak_crack.png) -->
 <p><img src="https://i.loli.net/2018/03/26/5ab8ffc14995d.png" alt=""></p>
-<p>接下来重新运行微信，试试消息撤回的case，发现消息撤回已经被阻止了，任务完成~</p>
+<p>接下来重新运行微信，试试消息撤回的case，发现消息撤回已经被阻止了，任务完成~<br>(文章特意选了个软柿子案例，实际情况可能不会这么容易找到关键函数，需要反复调试验证)</p>
 <hr>
 <h3 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h3><p><a href="https://github.com/passerbycrk/PRK_iOSRE/tree/master/Demo/WeChat_MsgRevoke_theos" target="_blank" rel="external">GitHub/passerbycrk/PRK_iOSRE/Demo/WeChat_MsgRevoke_theos</a></p>
 <hr>
