@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://passerbycrk.github.io/"/>
-  <updated>2018-03-27T00:34:07.405Z</updated>
+  <updated>2018-06-17T02:53:17.931Z</updated>
   <id>https://passerbycrk.github.io/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="https://passerbycrk.github.io/2018/03/26/iOS%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%92%8C%E6%B3%A8%E5%85%A5-%E5%BE%AE%E4%BF%A1%E9%98%B2%E6%92%A4%E5%9B%9E/"/>
     <id>https://passerbycrk.github.io/2018/03/26/iOS逆向分析和注入-微信防撤回/</id>
     <published>2018-03-26T04:00:00.000Z</published>
-    <updated>2018-03-27T00:34:07.405Z</updated>
+    <updated>2018-06-17T02:53:17.931Z</updated>
     
     <content type="html"><![CDATA[<p>复习iOS逆向知识，以微信消息防撤回为例，一步一步分析调试，到完成插件注入。</p>
 <a id="more"></a>
@@ -45,8 +45,8 @@
 </ul>
 <hr>
 <h3 id="砸壳"><a href="#砸壳" class="headerlink" title="砸壳"></a>砸壳</h3><p>推荐使用<code>frida-ios-dump</code>，下面会分别以<code>frida-ios-dump</code>和<code>dumpdecrypted</code>为例进行砸壳，实际情况任选一个使用即可。</p>
-<h4 id="frida-ios-dump"><a href="#frida-ios-dump" class="headerlink" title="frida-ios-dump"></a>frida-ios-dump</h4><p>1.获取app信息 <code>frida-ios-dump -l</code></p>
-<pre><code># frida-ios-dump -l
+<h4 id="frida-ios-dump"><a href="#frida-ios-dump" class="headerlink" title="frida-ios-dump"></a>frida-ios-dump</h4><p>1.获取app信息 <code>frida-ios-dump/dump.py -l</code></p>
+<pre><code># frida-ios-dump/dump.py -l
   PID  Name            Identifier
 -----  --------------  -------------------------------
 92311  微信              com.tencent.xin
@@ -55,8 +55,8 @@
     -  FaceTime        com.apple.facetime
     -  Safari          com.apple.mobilesafari
     ...
-</code></pre><p>2.根据app信息进行砸壳 <code>frida-ios-dump [bundle id|name]</code></p>
-<pre><code># frida-ios-dump com.tencent.xin
+</code></pre><p>2.根据app信息进行砸壳 <code>frida-ios-dump/dump.py [bundle id|name]</code></p>
+<pre><code># frida-ios-dump/dump.py com.tencent.xin
 Start the target app com.tencent.xin
 Dumping 微信 to /var/folders/7b/c3cyxy3j0t7_tgnt0dh5wc240000gn/T
 start dump /var/containers/Bundle/Application/FC7574FD-C99D-49DE-8130-AF824051424A/WeChat.app/WeChat
@@ -241,7 +241,7 @@ install.exec &quot;killall -9 SpringBoard&quot;
 <p>是一款32位和64位的二进制反汇编器，反编译和调试。可以使用此工具拆开你想要的任何二进制。</p>
 </blockquote>
 <p>使用方法很简单：将二进制文件拖入软件中，等待处理完成即可。<br>(完整解析微信app需要很长一段时间，可以前置该流程进行解析处理)</p>
-<h4 id="lldb-debugserver-动态分析"><a href="#lldb-debugserver-动态分析" class="headerlink" title="lldb+debugserver (动态分析)　"></a>lldb+debugserver (动态分析)　</h4><p>1.打开微信后，在连接至设备的控制台中键入<code>debugserver *:1234 -a &quot;WeChat&quot;</code>启动debugserver。<br>2.从控制台打开新窗口，键入<code>lldb</code>进入调试，再键入<code>debugserver *:1234 -a &quot;WeChat&quot;</code>连接1234端口。<br><!--![](lldb+debugserver.png)--><br><img src="https://i.loli.net/2018/03/26/5ab8ffdbe43a2.png" alt=""></p>
+<h4 id="lldb-debugserver-动态分析"><a href="#lldb-debugserver-动态分析" class="headerlink" title="lldb+debugserver (动态分析)　"></a>lldb+debugserver (动态分析)　</h4><p>1.打开微信后，在连接至设备的控制台中键入<code>debugserver *:1234 -a &quot;WeChat&quot;</code>启动debugserver。<br>2.从控制台打开新窗口，键入<code>lldb</code>进入调试，再键入<code>process connect connect://192.168.1.19:1234</code>连接1234端口。<br><!--![](lldb+debugserver.png)--><br><img src="https://i.loli.net/2018/03/26/5ab8ffdbe43a2.png" alt=""></p>
 <p>(此处连接上需要一点时间，可以上个厕所，连接上后键入<code>c</code>(continue)后app就可以正常运行了)<br>连接成功后<code>lldb</code>窗口会出现以下内容:</p>
 <pre><code>(lldb) process connect connect://192.168.1.19:1234
 Process 73244 stopped
