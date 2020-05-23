@@ -1,0 +1,920 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="iOS," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="passerbycrk" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/img/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="What我们知道苹果提供了手动给控件添加可访问性(Accessibility)的能力，然而这样做的工作量大且不一定能满足需求，只能另辟蹊径从技术自动化方向去尝试解决这个问题。 Why由于组内有不少技术性项目(自动化测试、自动化埋点等…)都需要有唯一标识的能力,于是有了此次的探索。">
+<meta name="keywords" content="iOS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS能力探索-自动生成视图唯一标识">
+<meta property="og:url" content="https://passerbycrk.github.io/2018/10/10/uiview_unique_id/index.html">
+<meta property="og:site_name" content="passerbycrk">
+<meta property="og:description" content="What我们知道苹果提供了手动给控件添加可访问性(Accessibility)的能力，然而这样做的工作量大且不一定能满足需求，只能另辟蹊径从技术自动化方向去尝试解决这个问题。 Why由于组内有不少技术性项目(自动化测试、自动化埋点等…)都需要有唯一标识的能力,于是有了此次的探索。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://i.loli.net/2018/10/08/5bbb26702ed46.png">
+<meta property="og:image" content="https://i.loli.net/2018/10/08/5bbb26705c870.png">
+<meta property="og:image" content="https://i.loli.net/2018/10/08/5bbb26705acde.png">
+<meta property="og:image" content="https://i.loli.net/2018/10/07/5bb9ec7e41a9c.png">
+<meta property="og:updated_time" content="2019-10-05T02:38:43.961Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS能力探索-自动生成视图唯一标识">
+<meta name="twitter:description" content="What我们知道苹果提供了手动给控件添加可访问性(Accessibility)的能力，然而这样做的工作量大且不一定能满足需求，只能另辟蹊径从技术自动化方向去尝试解决这个问题。 Why由于组内有不少技术性项目(自动化测试、自动化埋点等…)都需要有唯一标识的能力,于是有了此次的探索。">
+<meta name="twitter:image" content="https://i.loli.net/2018/10/08/5bbb26702ed46.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> iOS能力探索-自动生成视图唯一标识 | passerbycrk  -  </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-102049291-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+  <div style="display: none;">
+    <script src="http://s6.cnzz.com/stat.php?id=1262656651&web_id=1262656651" type="text/javascript"></script>
+  </div>
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">passerbycrk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle" id="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button onclick="showSubtitle()">
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav" id="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar-check-o"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                iOS能力探索-自动生成视图唯一标识
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-10-10T12:00:00+08:00" content="2018-10-10">
+              2018-10-10
+            </time>
+          </span>
+
+          
+
+          
+             <span id="/2018/10/10/uiview_unique_id/" class="leancloud_visitors" data-flag-title="iOS能力探索-自动生成视图唯一标识">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count">0</span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="What"><a href="#What" class="headerlink" title="What"></a>What</h2><p>我们知道苹果提供了手动给控件添加可访问性(Accessibility)的能力，然而这样做的工作量大且不一定能满足需求，只能另辟蹊径从技术自动化方向去尝试解决这个问题。</p>
+<h2 id="Why"><a href="#Why" class="headerlink" title="Why"></a>Why</h2><p>由于组内有不少技术性项目(自动化测试、自动化埋点等…)都需要有唯一标识的能力,于是有了此次的探索。</p>
+<a id="more"></a>
+<h2 id="How"><a href="#How" class="headerlink" title="How"></a>How</h2><p>在组内小范围讨论了一番并结合网络检索后，总结出以下2种方案：</p>
+<ol>
+<li><code>视图栈方案</code>: 运行时获得视图栈，动态生成唯一标识。</li>
+<li><code>脚本(配置)方案</code>: 提前生成唯一标识的配置数据，然后在运行时进行绑定。</li>
+</ol>
+<p>为了方便理解，接下来会用同一个案例来讲述两个方案的差别<br>如下图所示，有一个继承自UIViewController的类V1，其树形结构是用@property关键字声明的递归属性树(为了方便理解，已经由黑白名单策略过滤了私有变量，无效变量等节点)<br>矩形代表ViewController，圆形代表View，菱形代表Object<br><img src="https://i.loli.net/2018/10/08/5bbb26702ed46.png" alt="eg-w480"></p>
+<h3 id="视图栈方案"><a href="#视图栈方案" class="headerlink" title="视图栈方案"></a>视图栈方案</h3><p>先说<code>视图栈方案</code>,目前业内开源库里接受度较高的解决方案是<a href="https://github.com/yulingtianxia/TBUIAutoTest" target="_blank" rel="external">TBUIAutoTest</a>，其<a href="http://yulingtianxia.com/blog/2016/03/28/Add-UITest-Label-for-UIAutomation/" target="_blank" rel="external">原理</a>可以简述为：</p>
+<ul>
+<li>如果是类的属性变量，则用属性的变量名作为唯一标识。</li>
+<li>如果是局部变量，则用其来源的内容作为唯一标识。</li>
+</ul>
+<p>图解如下:</p>
+<p><img src="https://i.loli.net/2018/10/08/5bbb26705c870.png" alt="view_stack-w1080"></p>
+<p>该方案也暴露出以下问题:</p>
+<blockquote>
+<p>被复用的视图D，在被复用的父视图A和父视图B中的变量名都是d1，用该方案则会出现同一个unique_id对应多个视图的情况。<br>虽然可以通过运行时的视图栈index来进行区分，但是会出现另一个问题，就是视图的层级可能发生变化，导致unique_id不稳定。</p>
+</blockquote>
+<p>为了解决以上问题，也引出了接下来要重点说明的<code>配置(脚本)方案</code>。</p>
+<h3 id="配置-脚本-方案"><a href="#配置-脚本-方案" class="headerlink" title="配置(脚本)方案"></a>配置(脚本)方案</h3><p>要优化标识可能一致的问题，可以收敛要处理的类的范围，即只处理ViewController继承类的属性树，这也是该方案的关键点。<br>一般来说ViewController被复用的可能性不高，即使真的复用程度高，也可以配合后端下发唯一标识来解决相对定位的问题。</p>
+<p>具体实现步骤如下:<br>1.生成配置数据</p>
+<ul>
+<li>获得所有VC // objc_getClassList()</li>
+<li>递归遍历VC持有的属性树 // class_copyPropertyList()</li>
+<li>保存属性树上每个结点的keypath并生成其唯一标识 // md5(keypath)</li>
+</ul>
+<p>2.保存格式化后的数据(json) </p>
+<ul>
+<li>格式化保存VC的属性树数据(可以静态写入本地文件或保存在远端等)</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">// 格式参考</div><div class="line">&#123;</div><div class="line">    PRKHomeViewController : &#123;</div><div class="line">        &quot;dce359c476c4ae262e6f958a3e647c25&quot;:&quot;guideView&quot;,</div><div class="line">        &quot;f1a282bdbf688604b1dc1f5c94df1ada&quot;:&quot;myView&quot;,</div><div class="line">        &quot;f958a3e6860f688601dcf1ad62e6f958&quot;:&quot;myView.loadingView&quot;,</div><div class="line">        ...</div><div class="line">    &#125;,</div><div class="line">    PRKDetailViewController : &#123;</div><div class="line">        &quot;b1dc1f5c94df1ad62e6f958aa3e68606&quot;:&quot;navbar&quot;,</div><div class="line">        &quot;c4ae262e6f958a3e6860e266f958a3e6&quot;:&quot;navbar.titleLbl&quot;,</div><div class="line">        ...</div><div class="line">    &#125;,</div><div class="line">    ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>3.关联配置数据<br>关联数据有两种情况</p>
+<ul>
+<li>已知unique_id获取视图对象</li>
+</ul>
+<blockquote>
+<p>因为之前已经生成好配置文件，那我们只需要在运行时索引配置表，通过unique_id找到对应的keypath，再通过KVC机制获取到对应的视图对象。</p>
+</blockquote>
+<p>关键代码如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> @brief 传入unique_id和rootVC对象,获得视图</div><div class="line"> @param uniqueId 唯一标识</div><div class="line"> @param rootRef 当前的ViewController</div><div class="line"> @return 对应的视图</div><div class="line"> */</div><div class="line">- (id)refForUniqueId:(NSString *)uniqueId inRootRef:(id)rootRef &#123;</div><div class="line">    if (uniqueId.length &lt;= 0) &#123;</div><div class="line">        return nil;</div><div class="line">    &#125;</div><div class="line">    id aObj = [[PRKUniqueIdSession sharedSession].uniqueIdRefCache objectForKey:uniqueId];</div><div class="line">    if (nil != rootRef &amp;&amp; [aObj isKindOfClass:[NSDictionary class]]) &#123;</div><div class="line">        return [(NSDictionary *)aObj objectForKey:[NSString stringWithFormat:@&quot;%p&quot;,rootRef]];</div><div class="line">    &#125;</div><div class="line">    if (nil == aObj &amp;&amp; rootRef &amp;&amp; uniqueId) &#123;</div><div class="line">        // NOTE: try to find object by KVC</div><div class="line">        NSString *keyPath = [[PRKUniqueIdSession sharedSession] keyPathForUniqueId:uniqueId inRootClass:[rootRef class]];</div><div class="line">        id ref = nil;</div><div class="line">        @try &#123;</div><div class="line">            ref = [rootRef valueForKeyPath:keyPath];</div><div class="line">        &#125; @catch (NSException *exception) &#123;</div><div class="line">        &#125; @finally &#123;</div><div class="line">            if (ref) &#123;</div><div class="line">                NSString *uniqueId = [[PRKUniqueIdSession sharedSession] uniqueIdForKeyPath:keyPath inRootClass:[rootRef class]];</div><div class="line">                [(NSObject *)ref setPrk_sfRootRef:rootRef];</div><div class="line">                [(NSObject *)ref setPrk_sfUniqueId:uniqueId];</div><div class="line">                aObj = ref;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return aObj;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>已知视图对象获取unique_id</li>
+</ul>
+<blockquote>
+<p>用runtime的提供的相关API找到对象的varName以及对象的ViewController，再通过配置表定位到他的unique_id。</p>
+</blockquote>
+<p>关键代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">// @category: NSObject+uniqueId</div><div class="line">- (NSString *)prk_sfUniqueId &#123;</div><div class="line">    NSString *result = (NSString *)objc_getAssociatedObject(self, _kNSObject_prk_sfUniqueId);</div><div class="line">    // NOTE: 初始化赋值</div><div class="line">    if (nil == result &amp;&amp; [self isKindOfClass:[UIResponder class]]) &#123;</div><div class="line">        // NOTE: 兼容性逻辑，在此初始化一番</div><div class="line">        NSString *varName = [(UIResponder *)self prk_findNameWithInstance:(UIResponder *)self];</div><div class="line">        UIViewController *rootRef = [(UIResponder *)self prk_findViewController];</div><div class="line">        if (varName.length &gt; 0 &amp;&amp; rootRef) &#123;</div><div class="line">            // NOTE:遍历对应rootRef的所有keypath的lastObject对应的ref匹配，匹配则返回对应值</div><div class="line">            NSDictionary *map = [[PRKUniqueIdSession sharedSession] uniqueIdKeyPathMapInRootClass:[rootRef class]];</div><div class="line">            if (map.count &lt;= 0) &#123;</div><div class="line">                return result;</div><div class="line">            &#125;</div><div class="line">            NSMutableArray *maybelist = [NSMutableArray arrayWithCapacity:map.allValues.count];</div><div class="line">            for (NSString *aKeyPath in map.allValues) &#123;</div><div class="line">                if ([aKeyPath hasSuffix:varName]) &#123;</div><div class="line">                    [maybelist addObject:[map allKeysForObject:aKeyPath].lastObject];</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            for (NSString *uniqueId in maybelist) &#123;</div><div class="line">                // 该方法已给self赋值unique_id</div><div class="line">                id ref = [PRKUinqueIdKit prk_fetchRefForUniqueId:uniqueId inRootRef:rootRef];</div><div class="line">                if (ref == self) &#123;</div><div class="line">                    return uniqueId;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>同样我们再图解一番该方案:</p>
+<p><img src="https://i.loli.net/2018/10/08/5bbb26705acde.png" alt="vc_tree-w1080"></p>
+<blockquote>
+<p>用视图的keypath作为唯一标识(为了让unique_id长度一致，对其进行了md5编码)能保证在同一个VC下，被复用的视图的唯一标识不同，解决了视图栈方案的唯一标识重复问题。<br>被复用的视图D，在其父视图A下的唯一标识分别是md5(o1.a1.d1)和md5(o1.a2.d1)，在父视图B中的唯一标识是md5(b1.d1)</p>
+</blockquote>
+<h4 id="模块设计图"><a href="#模块设计图" class="headerlink" title="模块设计图"></a>模块设计图</h4><p>介于尚未获得公司的开源许可，暂放一张模块设计图供大家参考。</p>
+<p><img src="https://i.loli.net/2018/10/07/5bb9ec7e41a9c.png" alt="模块设计图-w640"></p>
+<h2 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h2><p>最后再说明下目前脚本(配置)方案的局限性：只覆盖了通过@property方式或者iVar方式声明的属性。<br>以下是需要完善的地方及其解决方案的思考：</p>
+<ul>
+<li>完善手动赋值情况: 提供生成唯一标识的规则</li>
+<li>VC被复用的场景: 可以通过服务器下发配合客户端赋值来解决</li>
+<li>列表元素类型(UITableViewCell、UICollectionViewCell): 可以通过服务器下发配合客户端赋值来解决</li>
+<li>局部变量: 可以复用TBUIAutoTest的方案临时解决（待完善）</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="http://yulingtianxia.com/blog/2016/03/28/Add-UITest-Label-for-UIAutomation/" target="_blank" rel="external">为 UIAutomation 添加自动化测试标签的探索</a></li>
+<li><a href="https://testerhome.com/topics/6642" target="_blank" rel="external">Macaca UI 自动化利器-为你的应用自动添加控件 ID 探索</a></li>
+<li><a href="http://appium.io/" target="_blank" rel="external">Appium</a></li>
+</ul>
+
+      
+    </div>
+
+    
+      <ul class="post-copyright">
+        <li><span><b>本文标题:</b> iOS能力探索-自动生成视图唯一标识</span></li>
+        <li><span><b>文章作者:</b> </span><a href="/" title="访问 passerbycrk 的个人博客">passerbycrk</a></li>
+        <!-- <li><span><b>发布时间:</b> </span>2018年10月10日</li>  -->
+        <li><span><b>原始链接:</b> </span><a href="/2018/10/10/uiview_unique_id/" title="iOS能力探索-自动生成视图唯一标识">https://passerbycrk.github.io/2018/10/10/uiview_unique_id/</a></li>
+        <li><span><b>许可协议:</b> </span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)">"署名-非商用-相同方式共享 3.0"</a> 转载请注明出处!</li>
+      </ul>
+      <style type="text/css">
+        .post-copyright {
+          margin: 2em 0 0;
+          padding: 0.5em 1em;
+          border-left: 3px solid #ff1700;
+          background-color: #f9f9f9;
+          list-style: none;
+        }
+      </style>
+    
+	    
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag">#iOS</a>
+          
+        </div>
+      
+
+      <div>
+        
+          
+        
+      </div>
+
+      <div>
+        
+          
+        
+      </div>
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+		  
+		  <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/26/iOS逆向分析和注入-微信防撤回/" class="post-nav-title-link" rel="next" title="iOS逆向分析和注入-微信防撤回">
+                iOS逆向分析和注入-微信防撤回  <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>    
+
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+           
+            
+        <div class="comments" id="comments"></div>  
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/img/avatar-passerbycrk.png"
+               alt="passerbycrk" />
+          <p class="site-author-name" itemprop="name">passerbycrk</p>
+          <p class="site-description motion-element" itemprop="description">单线程物种</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" target="_blank" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/passerbycrk" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/passerbycrk" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#What"><span class="nav-number">1.</span> <span class="nav-text">What</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why"><span class="nav-number">2.</span> <span class="nav-text">Why</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How"><span class="nav-number">3.</span> <span class="nav-text">How</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#视图栈方案"><span class="nav-number">3.1.</span> <span class="nav-text">视图栈方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置-脚本-方案"><span class="nav-number">3.2.</span> <span class="nav-text">配置(脚本)方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#模块设计图"><span class="nav-number">3.2.1.</span> <span class="nav-text">模块设计图</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TODO"><span class="nav-number">4.</span> <span class="nav-text">TODO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">5.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">passerbycrk</span>
+  
+   <span style="margin-left:8px;">
+   <script src="http://s6.cnzz.com/stat.php?id=1262656651&web_id=1262656651" type="text/javascript"></script>
+   </span>
+  
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io" target="_blank">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next" target="_blank">
+    NexT.Pisces
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+	
+
+
+	
+   
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <!-- <script src='//unpkg.com/valine/dist/Valine.min.js'></script> -->
+  <script src="/js/src/Valine.min.js"></script>
+
+            
+    
+
+    <script src="/js/src/Valine.min.js"></script>
+    
+    <script type="text/javascript">      
+      new Valine({
+          el: '#comments' ,
+          verify: true,
+          notify: false,
+          appId: 'KtsxXQRTidTPs6zCafD2z30Y-gzGzoHsz',
+          appKey: '0vltGMAJOeCNgPTMcU2X4KoX',
+          placeholder: '说点什么吧！',
+          avatar:'hide',
+          guest_info:['昵称'] ,
+          pageSize:'10' || 10,
+          visitor: true
+      });          
+      var infoEle = document.querySelector('#comments .info');
+      if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0){
+        infoEle.childNodes.forEach(function(item) {
+          item.parentNode.removeChild(item);
+        });
+      }
+    </script>
+
+
+
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+  <script type="text/JavaScript">
+function hideElement(elementID)
+{
+	var myele=document.getElementById(elementID);
+	myele.style.display="none";
+}
+
+function showElement(elementID)
+{
+	var myele=document.getElementById(elementID);
+	myele.style.display="block";
+}
+</script>
+
+<script type="text/JavaScript">
+function showSubtitle()
+{
+  var siteNav=document.getElementById("site-nav");
+  if(siteNav.style.display=="block")
+  {
+   var subTitle=document.getElementById("site-subtitle");
+   subTitle.style.display="none";
+  }else
+  {
+   var subTitle=document.getElementById("site-subtitle");
+   subTitle.style.display="block";
+  }
+
+}
+</script>
+
+</body>
+</html>

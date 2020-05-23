@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://passerbycrk.github.io/"/>
-  <updated>2018-06-17T02:53:17.931Z</updated>
+  <updated>2019-10-05T02:38:43.961Z</updated>
   <id>https://passerbycrk.github.io/</id>
   
   <author>
@@ -16,11 +16,101 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>iOS能力探索-自动生成视图唯一标识</title>
+    <link href="https://passerbycrk.github.io/2018/10/10/uiview_unique_id/"/>
+    <id>https://passerbycrk.github.io/2018/10/10/uiview_unique_id/</id>
+    <published>2018-10-10T04:00:00.000Z</published>
+    <updated>2019-10-05T02:38:43.961Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="What"><a href="#What" class="headerlink" title="What"></a>What</h2><p>我们知道苹果提供了手动给控件添加可访问性(Accessibility)的能力，然而这样做的工作量大且不一定能满足需求，只能另辟蹊径从技术自动化方向去尝试解决这个问题。</p>
+<h2 id="Why"><a href="#Why" class="headerlink" title="Why"></a>Why</h2><p>由于组内有不少技术性项目(自动化测试、自动化埋点等…)都需要有唯一标识的能力,于是有了此次的探索。</p>
+<a id="more"></a>
+<h2 id="How"><a href="#How" class="headerlink" title="How"></a>How</h2><p>在组内小范围讨论了一番并结合网络检索后，总结出以下2种方案：</p>
+<ol>
+<li><code>视图栈方案</code>: 运行时获得视图栈，动态生成唯一标识。</li>
+<li><code>脚本(配置)方案</code>: 提前生成唯一标识的配置数据，然后在运行时进行绑定。</li>
+</ol>
+<p>为了方便理解，接下来会用同一个案例来讲述两个方案的差别<br>如下图所示，有一个继承自UIViewController的类V1，其树形结构是用@property关键字声明的递归属性树(为了方便理解，已经由黑白名单策略过滤了私有变量，无效变量等节点)<br>矩形代表ViewController，圆形代表View，菱形代表Object<br><img src="https://i.loli.net/2018/10/08/5bbb26702ed46.png" alt="eg-w480"></p>
+<h3 id="视图栈方案"><a href="#视图栈方案" class="headerlink" title="视图栈方案"></a>视图栈方案</h3><p>先说<code>视图栈方案</code>,目前业内开源库里接受度较高的解决方案是<a href="https://github.com/yulingtianxia/TBUIAutoTest" target="_blank" rel="external">TBUIAutoTest</a>，其<a href="http://yulingtianxia.com/blog/2016/03/28/Add-UITest-Label-for-UIAutomation/" target="_blank" rel="external">原理</a>可以简述为：</p>
+<ul>
+<li>如果是类的属性变量，则用属性的变量名作为唯一标识。</li>
+<li>如果是局部变量，则用其来源的内容作为唯一标识。</li>
+</ul>
+<p>图解如下:</p>
+<p><img src="https://i.loli.net/2018/10/08/5bbb26705c870.png" alt="view_stack-w1080"></p>
+<p>该方案也暴露出以下问题:</p>
+<blockquote>
+<p>被复用的视图D，在被复用的父视图A和父视图B中的变量名都是d1，用该方案则会出现同一个unique_id对应多个视图的情况。<br>虽然可以通过运行时的视图栈index来进行区分，但是会出现另一个问题，就是视图的层级可能发生变化，导致unique_id不稳定。</p>
+</blockquote>
+<p>为了解决以上问题，也引出了接下来要重点说明的<code>配置(脚本)方案</code>。</p>
+<h3 id="配置-脚本-方案"><a href="#配置-脚本-方案" class="headerlink" title="配置(脚本)方案"></a>配置(脚本)方案</h3><p>要优化标识可能一致的问题，可以收敛要处理的类的范围，即只处理ViewController继承类的属性树，这也是该方案的关键点。<br>一般来说ViewController被复用的可能性不高，即使真的复用程度高，也可以配合后端下发唯一标识来解决相对定位的问题。</p>
+<p>具体实现步骤如下:<br>1.生成配置数据</p>
+<ul>
+<li>获得所有VC // objc_getClassList()</li>
+<li>递归遍历VC持有的属性树 // class_copyPropertyList()</li>
+<li>保存属性树上每个结点的keypath并生成其唯一标识 // md5(keypath)</li>
+</ul>
+<p>2.保存格式化后的数据(json) </p>
+<ul>
+<li>格式化保存VC的属性树数据(可以静态写入本地文件或保存在远端等)</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">// 格式参考</div><div class="line">&#123;</div><div class="line">    PRKHomeViewController : &#123;</div><div class="line">        &quot;dce359c476c4ae262e6f958a3e647c25&quot;:&quot;guideView&quot;,</div><div class="line">        &quot;f1a282bdbf688604b1dc1f5c94df1ada&quot;:&quot;myView&quot;,</div><div class="line">        &quot;f958a3e6860f688601dcf1ad62e6f958&quot;:&quot;myView.loadingView&quot;,</div><div class="line">        ...</div><div class="line">    &#125;,</div><div class="line">    PRKDetailViewController : &#123;</div><div class="line">        &quot;b1dc1f5c94df1ad62e6f958aa3e68606&quot;:&quot;navbar&quot;,</div><div class="line">        &quot;c4ae262e6f958a3e6860e266f958a3e6&quot;:&quot;navbar.titleLbl&quot;,</div><div class="line">        ...</div><div class="line">    &#125;,</div><div class="line">    ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>3.关联配置数据<br>关联数据有两种情况</p>
+<ul>
+<li>已知unique_id获取视图对象</li>
+</ul>
+<blockquote>
+<p>因为之前已经生成好配置文件，那我们只需要在运行时索引配置表，通过unique_id找到对应的keypath，再通过KVC机制获取到对应的视图对象。</p>
+</blockquote>
+<p>关键代码如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> @brief 传入unique_id和rootVC对象,获得视图</div><div class="line"> @param uniqueId 唯一标识</div><div class="line"> @param rootRef 当前的ViewController</div><div class="line"> @return 对应的视图</div><div class="line"> */</div><div class="line">- (id)refForUniqueId:(NSString *)uniqueId inRootRef:(id)rootRef &#123;</div><div class="line">    if (uniqueId.length &lt;= 0) &#123;</div><div class="line">        return nil;</div><div class="line">    &#125;</div><div class="line">    id aObj = [[PRKUniqueIdSession sharedSession].uniqueIdRefCache objectForKey:uniqueId];</div><div class="line">    if (nil != rootRef &amp;&amp; [aObj isKindOfClass:[NSDictionary class]]) &#123;</div><div class="line">        return [(NSDictionary *)aObj objectForKey:[NSString stringWithFormat:@&quot;%p&quot;,rootRef]];</div><div class="line">    &#125;</div><div class="line">    if (nil == aObj &amp;&amp; rootRef &amp;&amp; uniqueId) &#123;</div><div class="line">        // NOTE: try to find object by KVC</div><div class="line">        NSString *keyPath = [[PRKUniqueIdSession sharedSession] keyPathForUniqueId:uniqueId inRootClass:[rootRef class]];</div><div class="line">        id ref = nil;</div><div class="line">        @try &#123;</div><div class="line">            ref = [rootRef valueForKeyPath:keyPath];</div><div class="line">        &#125; @catch (NSException *exception) &#123;</div><div class="line">        &#125; @finally &#123;</div><div class="line">            if (ref) &#123;</div><div class="line">                NSString *uniqueId = [[PRKUniqueIdSession sharedSession] uniqueIdForKeyPath:keyPath inRootClass:[rootRef class]];</div><div class="line">                [(NSObject *)ref setPrk_sfRootRef:rootRef];</div><div class="line">                [(NSObject *)ref setPrk_sfUniqueId:uniqueId];</div><div class="line">                aObj = ref;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return aObj;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>已知视图对象获取unique_id</li>
+</ul>
+<blockquote>
+<p>用runtime的提供的相关API找到对象的varName以及对象的ViewController，再通过配置表定位到他的unique_id。</p>
+</blockquote>
+<p>关键代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">// @category: NSObject+uniqueId</div><div class="line">- (NSString *)prk_sfUniqueId &#123;</div><div class="line">    NSString *result = (NSString *)objc_getAssociatedObject(self, _kNSObject_prk_sfUniqueId);</div><div class="line">    // NOTE: 初始化赋值</div><div class="line">    if (nil == result &amp;&amp; [self isKindOfClass:[UIResponder class]]) &#123;</div><div class="line">        // NOTE: 兼容性逻辑，在此初始化一番</div><div class="line">        NSString *varName = [(UIResponder *)self prk_findNameWithInstance:(UIResponder *)self];</div><div class="line">        UIViewController *rootRef = [(UIResponder *)self prk_findViewController];</div><div class="line">        if (varName.length &gt; 0 &amp;&amp; rootRef) &#123;</div><div class="line">            // NOTE:遍历对应rootRef的所有keypath的lastObject对应的ref匹配，匹配则返回对应值</div><div class="line">            NSDictionary *map = [[PRKUniqueIdSession sharedSession] uniqueIdKeyPathMapInRootClass:[rootRef class]];</div><div class="line">            if (map.count &lt;= 0) &#123;</div><div class="line">                return result;</div><div class="line">            &#125;</div><div class="line">            NSMutableArray *maybelist = [NSMutableArray arrayWithCapacity:map.allValues.count];</div><div class="line">            for (NSString *aKeyPath in map.allValues) &#123;</div><div class="line">                if ([aKeyPath hasSuffix:varName]) &#123;</div><div class="line">                    [maybelist addObject:[map allKeysForObject:aKeyPath].lastObject];</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            for (NSString *uniqueId in maybelist) &#123;</div><div class="line">                // 该方法已给self赋值unique_id</div><div class="line">                id ref = [PRKUinqueIdKit prk_fetchRefForUniqueId:uniqueId inRootRef:rootRef];</div><div class="line">                if (ref == self) &#123;</div><div class="line">                    return uniqueId;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>同样我们再图解一番该方案:</p>
+<p><img src="https://i.loli.net/2018/10/08/5bbb26705acde.png" alt="vc_tree-w1080"></p>
+<blockquote>
+<p>用视图的keypath作为唯一标识(为了让unique_id长度一致，对其进行了md5编码)能保证在同一个VC下，被复用的视图的唯一标识不同，解决了视图栈方案的唯一标识重复问题。<br>被复用的视图D，在其父视图A下的唯一标识分别是md5(o1.a1.d1)和md5(o1.a2.d1)，在父视图B中的唯一标识是md5(b1.d1)</p>
+</blockquote>
+<h4 id="模块设计图"><a href="#模块设计图" class="headerlink" title="模块设计图"></a>模块设计图</h4><p>介于尚未获得公司的开源许可，暂放一张模块设计图供大家参考。</p>
+<p><img src="https://i.loli.net/2018/10/07/5bb9ec7e41a9c.png" alt="模块设计图-w640"></p>
+<h2 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h2><p>最后再说明下目前脚本(配置)方案的局限性：只覆盖了通过@property方式或者iVar方式声明的属性。<br>以下是需要完善的地方及其解决方案的思考：</p>
+<ul>
+<li>完善手动赋值情况: 提供生成唯一标识的规则</li>
+<li>VC被复用的场景: 可以通过服务器下发配合客户端赋值来解决</li>
+<li>列表元素类型(UITableViewCell、UICollectionViewCell): 可以通过服务器下发配合客户端赋值来解决</li>
+<li>局部变量: 可以复用TBUIAutoTest的方案临时解决（待完善）</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="http://yulingtianxia.com/blog/2016/03/28/Add-UITest-Label-for-UIAutomation/" target="_blank" rel="external">为 UIAutomation 添加自动化测试标签的探索</a></li>
+<li><a href="https://testerhome.com/topics/6642" target="_blank" rel="external">Macaca UI 自动化利器-为你的应用自动添加控件 ID 探索</a></li>
+<li><a href="http://appium.io/" target="_blank" rel="external">Appium</a></li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;What&quot;&gt;&lt;a href=&quot;#What&quot; class=&quot;headerlink&quot; title=&quot;What&quot;&gt;&lt;/a&gt;What&lt;/h2&gt;&lt;p&gt;我们知道苹果提供了手动给控件添加可访问性(Accessibility)的能力，然而这样做的工作量大且不一定能满足需求，只能另辟蹊径从技术自动化方向去尝试解决这个问题。&lt;/p&gt;
+&lt;h2 id=&quot;Why&quot;&gt;&lt;a href=&quot;#Why&quot; class=&quot;headerlink&quot; title=&quot;Why&quot;&gt;&lt;/a&gt;Why&lt;/h2&gt;&lt;p&gt;由于组内有不少技术性项目(自动化测试、自动化埋点等…)都需要有唯一标识的能力,于是有了此次的探索。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="iOS" scheme="https://passerbycrk.github.io/tags/iOS/"/>
+    
+  </entry>
+  
+  <entry>
     <title>iOS逆向分析和注入-微信防撤回</title>
     <link href="https://passerbycrk.github.io/2018/03/26/iOS%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%92%8C%E6%B3%A8%E5%85%A5-%E5%BE%AE%E4%BF%A1%E9%98%B2%E6%92%A4%E5%9B%9E/"/>
     <id>https://passerbycrk.github.io/2018/03/26/iOS逆向分析和注入-微信防撤回/</id>
     <published>2018-03-26T04:00:00.000Z</published>
-    <updated>2018-06-17T02:53:17.931Z</updated>
+    <updated>2019-10-05T02:38:43.961Z</updated>
     
     <content type="html"><![CDATA[<p>复习iOS逆向知识，以微信消息防撤回为例，一步一步分析调试，到完成插件注入。</p>
 <a id="more"></a>
@@ -367,10 +457,10 @@ install.exec &quot;killall -9 SpringBoard&quot;
   
   <entry>
     <title>mac下配置wine环境</title>
-    <link href="https://passerbycrk.github.io/2017/07/04/install%20wine/"/>
-    <id>https://passerbycrk.github.io/2017/07/04/install wine/</id>
+    <link href="https://passerbycrk.github.io/2017/07/04/install_wine/"/>
+    <id>https://passerbycrk.github.io/2017/07/04/install_wine/</id>
     <published>2017-07-04T04:00:00.000Z</published>
-    <updated>2017-07-27T12:56:21.000Z</updated>
+    <updated>2018-10-08T13:08:46.520Z</updated>
     
     <content type="html"><![CDATA[<p>转自:<a href="https://404forest.com/2015/10/12/%E5%9C%A8mac%E4%B8%8B%E9%85%8D%E7%BD%AEwine%E7%8E%AF%E5%A2%83%E2%80%94%E2%80%94%E8%87%AA%E5%B7%B1wine%E4%B8%80%E4%B8%AA%E5%B0%8F%E6%B8%B8%E6%88%8F/" target="_blank" rel="external">在mac下配置wine环境——自己wine一个小游戏</a></p>
 <hr>
@@ -436,10 +526,10 @@ install.exec &quot;killall -9 SpringBoard&quot;
   
   <entry>
     <title>Xcode Framework制作流程详情整理</title>
-    <link href="https://passerbycrk.github.io/2017/06/06/xcode%20build%20framework/"/>
-    <id>https://passerbycrk.github.io/2017/06/06/xcode build framework/</id>
+    <link href="https://passerbycrk.github.io/2017/06/06/xcode_build_framework/"/>
+    <id>https://passerbycrk.github.io/2017/06/06/xcode_build_framework/</id>
     <published>2017-06-06T04:00:00.000Z</published>
-    <updated>2017-07-27T12:05:30.000Z</updated>
+    <updated>2019-10-05T02:38:43.959Z</updated>
     
     <content type="html"><![CDATA[<p>转自: <a href="https://my.oschina.net/u/2304447/blog/552859" target="_blank" rel="external">Xcode 7 Framework制作流程详情整理</a></p>
 <hr>
@@ -557,10 +647,10 @@ open &quot;${SRCROOT}/Products/&quot;
   
   <entry>
     <title>多米尼克体系-编码表</title>
-    <link href="https://passerbycrk.github.io/2017/03/29/memory%20encoding/"/>
-    <id>https://passerbycrk.github.io/2017/03/29/memory encoding/</id>
+    <link href="https://passerbycrk.github.io/2017/03/29/memory_encoding/"/>
+    <id>https://passerbycrk.github.io/2017/03/29/memory_encoding/</id>
     <published>2017-03-29T04:00:00.000Z</published>
-    <updated>2017-09-18T09:30:03.000Z</updated>
+    <updated>2019-10-05T02:38:43.959Z</updated>
     
     <content type="html"><![CDATA[<h4 id="声母编码"><a href="#声母编码" class="headerlink" title="声母编码"></a>声母编码</h4><p>声母正好20个，可以规划为2x10赋予10个数两组编码<br><br><br>bpmf-dtnl-gkh-jqx-zcsr-yw<br><br><br>特殊：aoe iuv 都当做是0</p>
 <a id="more"></a>
@@ -1302,10 +1392,10 @@ open &quot;${SRCROOT}/Products/&quot;
   
   <entry>
     <title>使用github+jekyll搭建博客</title>
-    <link href="https://passerbycrk.github.io/2016/09/23/setup%20blog/"/>
-    <id>https://passerbycrk.github.io/2016/09/23/setup blog/</id>
+    <link href="https://passerbycrk.github.io/2016/09/23/setup_blog/"/>
+    <id>https://passerbycrk.github.io/2016/09/23/setup_blog/</id>
     <published>2016-09-23T04:00:00.000Z</published>
-    <updated>2017-07-27T12:05:30.000Z</updated>
+    <updated>2018-10-08T13:08:46.518Z</updated>
     
     <content type="html"><![CDATA[<h4 id="2017-07-06-更新"><a href="#2017-07-06-更新" class="headerlink" title="2017-07-06 更新"></a>2017-07-06 更新</h4><p>改用Hexo建站</p>
 <p>参考：</p>
